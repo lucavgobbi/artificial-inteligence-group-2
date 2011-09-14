@@ -50,7 +50,19 @@ class Main:
         # Grupo de sprites unico para o cursor e para a caixa de blocos.
         self.blockbox_sprite = pygame.sprite.RenderUpdates(self.blox)
         
+        # Configuracao inicial de blocos
+        self.blox.initiate_blocks()
     
+    # Chama a funcao de checagem de queda para os blocos necessarios
+    def fall(self, bb):
+	for block in bb.changed:
+	    print "passa"
+	    bb.check_fall(block.col, block.line)
+	for block_set in bb.falling_blocks:
+	    bb.block_fall(block_set)
+    
+    # Caso tenha sido dado o comando para mudar dois blocos de posicao, esse metodo chama o metodo
+    # que muda os dois blocos na posicao desejada de lugar
     def change(self, bb, pos_x, pos_y):
         if bb.change_fin == False:
             bb.change_fin = bb.block_change(pos_x, pos_y)
@@ -63,7 +75,6 @@ class Main:
         pos_y = 0
         
         self.load_sprites()
-        self.blox.initiate_blocks()
  
         while running:
             for event in pygame.event.get():
@@ -95,12 +106,19 @@ class Main:
 			self.blox.print_config_matrix()
 			print "Matriz de blocos"
 			self.blox.print_block_matrix()
+			print "Ativos"
+			self.blox.print_active()
+			
+		    elif event.key == pygame.K_q:
+			running = 0
 			
 			
 	    # processo de mudanca de bloco
             self.change(self.blox, pos_x, pos_y)
             
-            # Desenha a blockbox e o cursor. Retorna a area em que desenhamos a blockbox para atualiza-la
+            self.fall(self.blox)
+            
+            # Desenha a blockbox e depois seus elementos. Retorna a area em que desenhamos a blockbox para atualiza-la
             self.rectlist = self.blockbox_sprite.draw(self.screen)
             self.blox.draw_elements(self.screen)
             

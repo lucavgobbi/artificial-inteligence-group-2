@@ -54,6 +54,8 @@ class Block(pygame.sprite.Sprite):
 	    self.rect.left += value
 	if direction == "down":
 	    self.rect.top += value
+	if direction == "up":
+	    self.rect.top -= value
 	    
     def change_coord(self, direction, value=1):
 	if direction == "left":
