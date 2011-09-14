@@ -30,6 +30,8 @@ class Blockbox(pygame.sprite.Sprite):
         
         # lista contendo os blocos que devem cair
         self.falling_blocks = []
+        
+        self.teste = 1
 
         self.image = load_image("blockbox.PNG")
         self.image.set_alpha(128)       
@@ -139,6 +141,12 @@ class Blockbox(pygame.sprite.Sprite):
 	# Se tiver terminado de trocar dois blocos de lugar, troca eles de lugar nas
 	# determinadas matrizes
 	else:
+	    
+	    # Flag checa se foi trocado um bloco inativo por um ativo. So e necessario checar se um
+	    # blocos devem cair se em trocas se for trocado um inativo com um ativo
+	    check = False
+	    check = (self.block_matrix[pos_y][pos_x].isActive != self.block_matrix[pos_y][pos_x+1].isActive)
+	    
 	    # Troca os valores no bloco. Primeiro da esquerda depois da direita
 	    self.block_matrix[pos_y][pos_x].col += 1
 	    self.block_matrix[pos_y][pos_x+1].col -= 1
@@ -154,9 +162,9 @@ class Blockbox(pygame.sprite.Sprite):
 	    self.block_config[pos_y][pos_x+1] = self.block_config[pos_y][pos_x]
 	    self.block_config[pos_y][pos_x] = aux_config
 	    
-	    """ adiciona nos blocos mudados
-	    if(self.block_config[pos_y][pos_x])self.changed.append(self.block_config[pos_y][pos_x])
-	    self.changed.append(self.block_config[pos_y][pos_x+1])"""
+	    if check:		
+	        self.changed.append(self.block_matrix[pos_y][pos_x])
+	        self.changed.append(self.block_matrix[pos_y][pos_x+1])
 	    
 	    # reseta o valor de movimento
 	    self.move_value = 0	
@@ -165,8 +173,68 @@ class Blockbox(pygame.sprite.Sprite):
     
     # Checa se um bloco deve cair, e se sim, quantas posicoes
     def check_fall(self, pos_x, pos_y):
+	
+	# Se o bloco for ativo, checa se ele proprio deve cair
+	if self.block_matrix[pos_y][pos_x].isActive:
+	    if pos_y-1 >=0 and (not self.block_matrix[pos_y-1][pos_x].isActive):
+		self.falling_blocks.append([self.block_matrix[pos_y][pos_x]])
+	        self.block_matrix[pos_y][pos_x].fall_timer = 30
+	# Se o bloco for inativo, checa se os blocos acima dele devem cair
+	else:
+	    k = pos_y+1
+	    if self.block_matrix[k][pos_x].isActive:
+		self.falling_blocks.append([self.block_matrix[k][pos_x]])
+		self.block_matrix[k][pos_x].fall_timer = 30
+		k+=1
+	    while k < 12 and self.block_matrix[k][pos_x].isActive:
+		self.falling_blocks[-1].append(self.block_matrix[k][pos_x])
+		k+=1
+		
+	self.changed.remove(self.block_matrix[pos_y][pos_x])
         return
+        
+        
+    def block_fall(self, block_set):
+	
+	if block_set[0].fall_timer != 0:
+	    block_set[0].fall_timer -= 1
+	    return
 
+	pos_y = block_set[0].line
+	pos_x = block_set[0].col
+
+	if pos_y-1 >=0 and (not self.block_matrix[pos_y-1][pos_x].isActive):
+
+	    for block in block_set:
+		pos_y = block.line
+	        pos_x = block.col
+	        # Se a posicao dos blocos na tela nao tiver sido trocada completamente ainda, movimenta
+	        # cada bloco a ser trocado um pouco mais e retorna falso
+	        self.block_matrix[pos_y][pos_x].change_position("down", 21)
+	        self.block_matrix[pos_y-1][pos_x].change_position("up", 21)
+	    
+	    # Se tiver terminado de trocar dois blocos de lugar, troca eles de lugar nas
+	    # determinadas matrizes
+	        
+	    # Troca os valores no bloco. Primeiro da esquerda depois da direita
+	        self.block_matrix[pos_y][pos_x].line -= 1
+	        self.block_matrix[pos_y-1][pos_x].line += 1
+	    	    
+	    # Troca os blocos na matriz de blocos
+	        aux_block = self.block_matrix[pos_y][pos_x]
+	        self.block_matrix[pos_y][pos_x] = self.block_matrix[pos_y-1][pos_x]
+	        self.block_matrix[pos_y-1][pos_x] = aux_block
+	    
+	    # Troca os valores na matriz de configuracao
+	        aux_config = self.block_config[pos_y][pos_x]
+	        self.block_config[pos_y][pos_x] = self.block_config[pos_y-1][pos_x]
+	        self.block_config[pos_y-1][pos_x] = aux_config
+	    
+	    # reseta o valor de movimento
+	        self.block_matrix[pos_y-1][pos_x].down_value = 0
+	else:
+	    self.falling_blocks.remove(block_set)
+	    
 	    
     def print_config_matrix(self):
         for i in range(11, -1, -1):
@@ -180,5 +248,13 @@ class Blockbox(pygame.sprite.Sprite):
 	        line = line + " B:{0:2d}  L:{1:2d}  C:{2:2d},".format(self.block_matrix[i][k].block_type, self.block_matrix[i][k].line, self.block_matrix[i][k].col)
 	    print line
 	    line = ""
-        
+	    
+    def print_active(self):
+        line = ""
+	for i in range(11, -1, -1):
+	    line = line + "Linha {0:02d}:".format(i)
+	    for k in range(0,6):
+	        line = line + "{0:10s}".format(str(self.block_matrix[i][k].isActive))
+            print line
+	    line = ""
         
