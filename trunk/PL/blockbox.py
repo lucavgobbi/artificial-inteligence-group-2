@@ -179,7 +179,11 @@ class Blockbox(pygame.sprite.Sprite):
 	    if pos_y-1 >=0 and (not self.block_matrix[pos_y-1][pos_x].isActive):
 		self.falling_blocks.append([self.block_matrix[pos_y][pos_x]])
 	        self.block_matrix[pos_y][pos_x].fall_timer = 30
-	# Se o bloco for inativo, checa se os blocos acima dele devem cair
+	        
+	        
+	# Se o bloco for inativo, checa se os blocos acima dele devem cair. Se devem, cria uma
+	# lista com esses blocos e adiciona na lista de blocos em queda. Essa lista representa
+	# um grupo de blocos que deve cair, e o seu timer e o do primeiro bloco da lista
 	else:
 	    k = pos_y+1
 	    if self.block_matrix[k][pos_x].isActive:
@@ -193,53 +197,68 @@ class Blockbox(pygame.sprite.Sprite):
 	self.changed.remove(self.block_matrix[pos_y][pos_x])
         return
         
-        
+    # Cuida da queda de blocos. Recebe um grupo de blocos que deve cair. A logica e que temos um bloco
+    # mestre no grupo, que e o primeiro da lista, ou seja o bloco na linha de menor numero. Ele sempre
+    # olha o bloco abaixo de si. Caso ess seja inativo, troca uma posicao para baixo sua e de todos os
+    # outros blocos da lista. Caso nao, para de cair
     def block_fall(self, block_set):
 	
+	# Timer no primeiro elemento do grupo de blocos que deve cair. Assim que zerar, o
+	# grupo comeca a cair
 	if block_set[0].fall_timer != 0:
 	    block_set[0].fall_timer -= 1
 	    return
 
 	pos_y = block_set[0].line
 	pos_x = block_set[0].col
-
+	
+	# Se a posicao do primeiro bloco do grupo de blocos em queda nao for linha 0 e o 
+	# bloco abaixo dele for inativo, o grupo cai uma posicao. Essa queda e feita
+	# trocando-se o bloco de lugar com o que esta abaixo dele
 	if pos_y-1 >=0 and (not self.block_matrix[pos_y-1][pos_x].isActive):
-
+	    
+	    # Movimenta cada bloco do grupo de blocos que deve cair uma posicao para baixo
+	    # trocando ele de lugar com o bloco abaixo dele.
 	    for block in block_set:
 		pos_y = block.line
 	        pos_x = block.col
-	        # Se a posicao dos blocos na tela nao tiver sido trocada completamente ainda, movimenta
-	        # cada bloco a ser trocado um pouco mais e retorna falso
+	        
+	        # Movimenta o bloco para baixo e o abaixo dele para cima
 	        self.block_matrix[pos_y][pos_x].change_position("down", 21)
 	        self.block_matrix[pos_y-1][pos_x].change_position("up", 21)
-	    
-	    # Se tiver terminado de trocar dois blocos de lugar, troca eles de lugar nas
-	    # determinadas matrizes
 	        
-	    # Troca os valores no bloco. Primeiro da esquerda depois da direita
+	        # Troca os valores no bloco. Primeiro da cima depois baixo
 	        self.block_matrix[pos_y][pos_x].line -= 1
 	        self.block_matrix[pos_y-1][pos_x].line += 1
 	    	    
-	    # Troca os blocos na matriz de blocos
+	        # Troca os blocos na matriz de blocos
 	        aux_block = self.block_matrix[pos_y][pos_x]
 	        self.block_matrix[pos_y][pos_x] = self.block_matrix[pos_y-1][pos_x]
 	        self.block_matrix[pos_y-1][pos_x] = aux_block
 	    
-	    # Troca os valores na matriz de configuracao
+	        # Troca os valores na matriz de configuracao
 	        aux_config = self.block_config[pos_y][pos_x]
 	        self.block_config[pos_y][pos_x] = self.block_config[pos_y-1][pos_x]
 	        self.block_config[pos_y-1][pos_x] = aux_config
 	    
-	    # reseta o valor de movimento
-	        self.block_matrix[pos_y-1][pos_x].down_value = 0
 	else:
-	    self.falling_blocks.remove(block_set)
+	    # Se o bloco inicial do grupo nao estiver na linha 0, iguala seu timer ao bloco abaixo dele
+	    # fazemos isso pois possivel que o grupo de blocos tenha sido parado no ar por um bloco que
+	    # deve cair. Se o timer copiado for diferente de 0, temos essa situacao, entao devemos
+	    # "sincronizar" o grupo de blocos em queda com o bloco parado no ar esperando para cair
+	    # e derrubar todos juntos
+	    if pos_y != 0:
+		 self.block_matrix[pos_y][pos_x].fall_timer = self.block_matrix[pos_y-1][pos_x].fall_timer
+		
+	    if self.block_matrix[pos_y-1][pos_x] == 0:
+	        self.falling_blocks.remove(block_set)
 	    
-	    
+    # TESTE: Printa matriz de configuracao de blocos
     def print_config_matrix(self):
         for i in range(11, -1, -1):
 	    print self.block_config[i]
-	    
+
+    # TESTE: Printa matriz de blocos
     def print_block_matrix(self):
         line = ""
 	for i in range(11, -1, -1):
@@ -249,6 +268,7 @@ class Blockbox(pygame.sprite.Sprite):
 	    print line
 	    line = ""
 	    
+    # TESTE: Printa situacao dos blocos (Ativo ou inativo)
     def print_active(self):
         line = ""
 	for i in range(11, -1, -1):
