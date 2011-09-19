@@ -4,11 +4,14 @@ import random
 from adds import *
 
 class Block(pygame.sprite.Sprite):
-    blueblock = None
-    purpleblock = None
-    yellowblock = None
-    redblock = None
-    greenblock = None
+    # Dicionario guarda as imagens correspondentes aos blocos e suas animacoes. Indexado pelo
+    # nome das cores. Cada cor guarda uma lista com as imagens da cor correspondente
+    block_colors = {}
+    block_colors["purple"] = []
+    block_colors["blue"] = []    
+    block_colors["yellow"] = []   
+    block_colors["red"] = []   
+    block_colors["green"] = []
     
     # Inicializacao
     def __init__(self, position, bw, bh, btype = None):
@@ -22,15 +25,12 @@ class Block(pygame.sprite.Sprite):
         # valor que controla a queda de um bloco
         self.falling = False
         
-        # numero de posicoes que deve cair
-        self.fall_number = 0
-        
         # timer para o bloco comecar a cair
         self.fall_timer = 0
         
-        # valor mudado para o efeito gravitacional no bloco
-        self.down_value = 0
-        
+        # contador pra piscar o bloco
+        self.blinking = 0
+        self.b_counter = 1
     	
 	if btype == None:
 	    self.block_type = random.randint(1,5)
@@ -38,7 +38,7 @@ class Block(pygame.sprite.Sprite):
 	
 	self.load_block_images()
              
-
+    # Seta posicao inicial do bloco
     def set_position(self, bb_rect, col_number, line_number):
         self.line = line_number
         self.col = col_number
@@ -46,7 +46,7 @@ class Block(pygame.sprite.Sprite):
 	self.rect.left = bb_rect.left + 10 + self.col*self.block_width
 	self.rect.top = bb_rect.top + 5 + (11-self.line)*self.block_height
 	
-	
+    # Muda posicao do bloco
     def change_position(self, direction, value):
 	if direction == "left":
             self.rect.left -= value
@@ -57,6 +57,7 @@ class Block(pygame.sprite.Sprite):
 	if direction == "up":
 	    self.rect.top -= value
 	    
+    # Muda coordenada do bloco
     def change_coord(self, direction, value=1):
 	if direction == "left":
             self.col -= value
@@ -64,53 +65,55 @@ class Block(pygame.sprite.Sprite):
 	    self.col += value
 	if direction == "down":
 	    self.line -= value 
+	if direction == "up":
+	    self.line += value 
 	    
-    def block_fall(self):
-	if self.fall_timer == 0:
-	        self.change_position("down", 21)
-	        self.change_coord("down", 1)
-	        return False
-	else: self.fall_timer -= 1
-	print self.fall_timer
-	return False
-	    
+    # efeito de piscar do bloco.
+    def block_blinking(self):
+	self.blinking += self.b_counter
+	if self.block_type == 0:
+	    return
+	else:
+	    self.image = Block.block_colors[self.color_name][self.blinking]
+	    if self.blinking == 5 or self.blinking == 0:
+		self.b_counter *= -1 	    
+	return
+    
+    # Carrega as imagens referentes aos blocos em variaveis da classe, e seta elas para o objeto bloco
+    # que estiver sendo instanciado
     def load_block_images(self):
 	
 	if self.block_type == 0:
+	    self.color_name = "white"
 	    self. isActive = False
 	    self.rect = pygame.Rect(0, 0, self.block_width, self.block_height)
 	    return
 	
 	if self.block_type == 1:
-            if Block.purpleblock is None:
-                Block.purpleblock = load_image("purple.PNG")
-
-            self.image = Block.purpleblock
+	    self.color_name = "purple"
 
         elif self.block_type == 2:
-            if Block.blueblock is None:
-                Block.blueblock = load_image("blue.PNG")
-
-            self.image = Block.blueblock
+	    self.color_name = "blue"
 
         elif self.block_type == 3:
-            if Block.yellowblock is None:
-                Block.yellowblock = load_image("yellow.PNG")
-
-            self.image = Block.yellowblock
+	    self.color_name = "yellow"
             
         elif self.block_type == 4:
-            if Block.redblock is None:
-                Block.redblock = load_image("red.PNG")
-
-            self.image = Block.redblock
+	    self.color_name = "red"
 
         elif self.block_type == 5:
-            if Block.greenblock is None:
-                Block.greenblock = load_image("green.PNG")
+	    self.color_name = "green"
+	    
+	    
+        if Block.block_colors[self.color_name] == []:
+	    for i in range(0,6):
+                Block.block_colors[self.color_name].append(load_image(self.color_name+"_B"+str(i)+".PNG"))
 
-            self.image = Block.greenblock
+        self.image = Block.block_colors[self.color_name][0]
+        self.image_ref = Block.block_colors[self.color_name][0]
             
         self.rect = self.image.get_rect()
         self. isActive = True
+        
+        
         

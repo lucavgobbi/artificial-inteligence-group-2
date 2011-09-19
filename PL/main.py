@@ -28,6 +28,11 @@ class Main:
                
         # areas 'sujas' da tela que devem ser atualizadas
         self.rectlist = []
+        
+        self.blink_test_counter = 0
+        self.blink_test_flag = False
+        self.blink_pos_x = 0
+        self.blink_pos_y = 0
 
         # Inicializa janela principal com os tamanhos dados
         self.screen = pygame.display.set_mode((self.width, self.height),pygame.DOUBLEBUF, 32)
@@ -56,7 +61,6 @@ class Main:
     # Chama a funcao de checagem de queda para os blocos necessarios
     def fall(self, bb):
 	for block in bb.changed:
-	    print "passa"
 	    bb.check_fall(block.col, block.line)
 	for block_set in bb.falling_blocks:
 	    bb.block_fall(block_set)
@@ -109,6 +113,12 @@ class Main:
 			print "Ativos"
 			self.blox.print_active()
 			
+		    elif event.key == pygame.K_b and self.blink_test_flag == False:
+			self.blink_test_flag = True
+			self.blink_test_counter = 70
+			self.blink_pos_x = self.blox.cursor.pos_rel_x
+			self.blink_pos_y = self.blox.cursor.pos_rel_y
+			
 		    elif event.key == pygame.K_q:
 			running = 0
 			
@@ -117,6 +127,16 @@ class Main:
             self.change(self.blox, pos_x, pos_y)
             
             self.fall(self.blox)
+            
+            if self.blink_test_flag:
+		if self.blink_test_counter != 0:
+		    self.blox.block_matrix[self.blink_pos_y][self.blink_pos_x].block_blinking()
+		    self.blox.block_matrix[self.blink_pos_y][self.blink_pos_x+1].block_blinking()
+		    self.blink_test_counter -= 1
+		else:
+		    self.blink_test_flag = False
+		    
+		
             
             # Desenha a blockbox e depois seus elementos. Retorna a area em que desenhamos a blockbox para atualiza-la
             self.rectlist = self.blockbox_sprite.draw(self.screen)
