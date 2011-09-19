@@ -178,7 +178,7 @@ class Blockbox(pygame.sprite.Sprite):
 	if self.block_matrix[pos_y][pos_x].isActive:
 	    if pos_y-1 >=0 and (not self.block_matrix[pos_y-1][pos_x].isActive):
 		self.falling_blocks.append([self.block_matrix[pos_y][pos_x]])
-	        self.block_matrix[pos_y][pos_x].fall_timer = 30
+	        self.block_matrix[pos_y][pos_x].fall_timer = 16
 	        
 	        
 	# Se o bloco for inativo, checa se os blocos acima dele devem cair. Se devem, cria uma
@@ -188,10 +188,11 @@ class Blockbox(pygame.sprite.Sprite):
 	    k = pos_y+1
 	    if self.block_matrix[k][pos_x].isActive:
 		self.falling_blocks.append([self.block_matrix[k][pos_x]])
-		self.block_matrix[k][pos_x].fall_timer = 30
+		self.block_matrix[k][pos_x].fall_timer = 16
 		k+=1
 	    while k < 12 and self.block_matrix[k][pos_x].isActive:
 		self.falling_blocks[-1].append(self.block_matrix[k][pos_x])
+		self.block_matrix[k][pos_x].fall_timer = 16
 		k+=1
 		
 	self.changed.remove(self.block_matrix[pos_y][pos_x])
@@ -206,7 +207,8 @@ class Blockbox(pygame.sprite.Sprite):
 	# Timer no primeiro elemento do grupo de blocos que deve cair. Assim que zerar, o
 	# grupo comeca a cair
 	if block_set[0].fall_timer != 0:
-	    block_set[0].fall_timer -= 1
+	    for b in block_set:
+	        b.fall_timer -= 1
 	    return
 
 	pos_y = block_set[0].line
@@ -248,9 +250,10 @@ class Blockbox(pygame.sprite.Sprite):
 	    # "sincronizar" o grupo de blocos em queda com o bloco parado no ar esperando para cair
 	    # e derrubar todos juntos
 	    if pos_y != 0:
-		 self.block_matrix[pos_y][pos_x].fall_timer = self.block_matrix[pos_y-1][pos_x].fall_timer
+		 for b in block_set:
+		     b.fall_timer = self.block_matrix[pos_y-1][pos_x].fall_timer
 		
-	    if self.block_matrix[pos_y-1][pos_x] == 0:
+	    if self.block_matrix[pos_y-1][pos_x].fall_timer == 0:
 	        self.falling_blocks.remove(block_set)
 	    
     # TESTE: Printa matriz de configuracao de blocos
