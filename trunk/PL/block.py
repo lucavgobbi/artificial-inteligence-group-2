@@ -14,7 +14,7 @@ class Block(pygame.sprite.Sprite):
     block_colors["green"] = []
     
     # Inicializacao
-    def __init__(self, position, bw, bh, btype = None):
+    def __init__(self, def_position, bw, bh, btype = None):
 	
 	# Inicializa classe sprite
         pygame.sprite.Sprite.__init__(self)
@@ -37,14 +37,15 @@ class Block(pygame.sprite.Sprite):
 	else: self.block_type = btype
 	
 	self.load_block_images()
+	self.set_position(def_position)
              
     # Seta posicao inicial do bloco
-    def set_position(self, bb_rect, col_number, line_number):
+    def set_position(self, (bb_rect_left, bb_rect_top, col_number, line_number)):
         self.line = line_number
         self.col = col_number
 	
-	self.rect.left = bb_rect.left + 10 + self.col*self.block_width
-	self.rect.top = bb_rect.top + 5 + (11-self.line)*self.block_height
+	self.rect.left = bb_rect_left + 10 + self.col*self.block_width
+	self.rect.top = bb_rect_top + 5 + (11-self.line)*self.block_height
 	
     # Muda posicao do bloco
     def change_position(self, direction, value):
@@ -104,16 +105,20 @@ class Block(pygame.sprite.Sprite):
         elif self.block_type == 5:
 	    self.color_name = "green"
 	    
-	    
         if Block.block_colors[self.color_name] == []:
-	    for i in range(0,6):
-                Block.block_colors[self.color_name].append(load_image(self.color_name+"_B"+str(i)+".PNG"))
+            Block.block_colors[self.color_name] = [load_image(self.color_name+"_B"+str(i)+".PNG") for i in range(0,6)]
 
         self.image = Block.block_colors[self.color_name][0]
         self.image_ref = Block.block_colors[self.color_name][0]
             
         self.rect = self.image.get_rect()
         self. isActive = True
-        
+
+    # Limpa um bloco qualquer, ou seja, torna ele inativo
+    def clear(self):
+	self.block_type = 0
+	self.isActive = False
+	self.color_name = "white"
+	self.image = None
         
         
