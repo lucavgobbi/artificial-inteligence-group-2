@@ -60,8 +60,8 @@ class Main:
     
     # Chama a funcao de checagem de queda para os blocos necessarios
     def fall(self, bb):
-	for block in bb.changed:
-	    bb.check_fall(block.col, block.line)
+	for block_coord in bb.changed:
+	    bb.check_fall(block_coord)
 	for block_set in bb.falling_blocks:
 	    bb.block_fall(block_set)
     
@@ -126,6 +126,7 @@ class Main:
 	    # processo de mudanca de bloco
             self.change(self.blox, pos_x, pos_y)
             
+            # process de queda de bloco
             self.fall(self.blox)
             
             if self.blink_test_flag:
@@ -147,7 +148,7 @@ class Main:
             self.blockbox_sprite.clear(self.screen, self.background)
             
             # Jogo rodando em 60fps
-            self.clock.tick(60)
+            self.clock.tick(50)
 
 
 if __name__ == "__main__":
