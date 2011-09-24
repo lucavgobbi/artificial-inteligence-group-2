@@ -23,7 +23,7 @@ class Block(pygame.sprite.Sprite):
         self.block_height = bh
         
         # valor que controla a queda de um bloco
-        self.falling = False
+        self.isFalling = False
         
         # timer para o bloco comecar a cair
         self.fall_timer = 0
@@ -31,6 +31,14 @@ class Block(pygame.sprite.Sprite):
         # contador pra piscar o bloco
         self.blinking = 0
         self.b_counter = 1
+        
+        # booleanos que dizem se algum vizinho horizontal e vertical do bloco e da mesma cor que ele
+        self.same_hor = False
+        self.same_ver = False
+        
+        # indica queo bloco esta no meio da animacao de eliminacao. Nada pode acontecer com ele durante
+        # essa animacao
+        self.isClearing = False
     	
 	if btype == None:
 	    self.block_type = random.randint(1,5)
@@ -71,13 +79,11 @@ class Block(pygame.sprite.Sprite):
 	    
     # efeito de piscar do bloco.
     def block_blinking(self):
-	self.blinking += self.b_counter
+	self.blinking -= self.b_counter
 	if self.block_type == 0:
 	    return
 	else:
-	    self.image = Block.block_colors[self.color_name][self.blinking]
-	    if self.blinking == 5 or self.blinking == 0:
-		self.b_counter *= -1 	    
+	    self.image = Block.block_colors[self.color_name][self.blinking%6]    
 	return
     
     # Carrega as imagens referentes aos blocos em variaveis da classe, e seta elas para o objeto bloco
@@ -120,5 +126,8 @@ class Block(pygame.sprite.Sprite):
 	self.isActive = False
 	self.color_name = "white"
 	self.image = None
+	self.isClearing = False
+	self.same_ver = False
+	self.same_hor = False
         
         
