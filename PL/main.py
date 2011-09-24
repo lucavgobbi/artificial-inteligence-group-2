@@ -50,13 +50,16 @@ class Main:
     def load_sprites(self):
 	
 	# objetos principais da tela. Blox e o quadro que contem os blocos.
-        self.blox = Blockbox(152, 262, 150, 150, self.screen)
+        self.blox = Blockbox(152, 262, 100, 150, self.screen)
+        self.blox_cpu = Blockbox(152, 262, 388, 150, self.screen)
         
         # Grupo de sprites unico para o cursor e para a caixa de blocos.
         self.blockbox_sprite = pygame.sprite.RenderUpdates(self.blox)
+        self.blockbox_sprite.add(self.blox_cpu)
         
         # Configuracao inicial de blocos
         self.blox.initiate_blocks()
+        self.blox_cpu.initiate_blocks()
     
     # Chama a funcao de checagem de queda para os blocos necessarios
     def fall(self, bb):
@@ -70,6 +73,10 @@ class Main:
     def change(self, bb, pos_x, pos_y):
         if bb.change_fin == False:
             bb.change_fin = bb.block_change(pos_x, pos_y)
+            
+    def clear(self, bb):
+	for block_set in bb.cleared_blocks:
+	    bb.block_clear(block_set)
 
     # Loop principal do programa
     def main_loop(self):
@@ -101,6 +108,7 @@ class Main:
                     elif event.key == pygame.K_a:
                         if self.blox.cursor.pos_rel_y < self.blox.max_height:
 			    self.blox.change_fin = False
+			    self.blox_cpu.change_fin = False
 			    pos_x = self.blox.cursor.pos_rel_x
 			    pos_y = self.blox.cursor.pos_rel_y
 			
@@ -112,43 +120,35 @@ class Main:
 			self.blox.print_block_matrix()
 			print "Ativos"
 			self.blox.print_active()
-			
-		    elif event.key == pygame.K_b and self.blink_test_flag == False:
-			self.blink_test_flag = True
-			self.blink_test_counter = 70
-			self.blink_pos_x = self.blox.cursor.pos_rel_x
-			self.blink_pos_y = self.blox.cursor.pos_rel_y
-			
+					
 		    elif event.key == pygame.K_q:
 			running = 0
 			
 			
 	    # processo de mudanca de bloco
             self.change(self.blox, pos_x, pos_y)
+            self.change(self.blox_cpu, pos_x, pos_y)
             
             # process de queda de bloco
             self.fall(self.blox)
+            self.fall(self.blox_cpu)
             
-            if self.blink_test_flag:
-		if self.blink_test_counter != 0:
-		    self.blox.block_matrix[self.blink_pos_y][self.blink_pos_x].block_blinking()
-		    self.blox.block_matrix[self.blink_pos_y][self.blink_pos_x+1].block_blinking()
-		    self.blink_test_counter -= 1
-		else:
-		    self.blink_test_flag = False
-		    
-		
-            
+            # processo de eliminacao de blocos
+            self.clear(self.blox)
+            self.clear(self.blox_cpu)
+               
             # Desenha a blockbox e depois seus elementos. Retorna a area em que desenhamos a blockbox para atualiza-la
             self.rectlist = self.blockbox_sprite.draw(self.screen)
-            self.blox.draw_elements(self.screen)
+            Blockbox.block_group.draw(self.screen)
+            Blockbox.cursor_group.draw(self.screen)
             
             # Atualiza a tela apenas na area da blockbox. Subsequentemente limpa a tela com o background
             pygame.display.update(self.rectlist)
             self.blockbox_sprite.clear(self.screen, self.background)
             
             # Jogo rodando em 60fps
-            self.clock.tick(50)
+            #print self.clock.tick()
+            self.clock.tick(40)
 
 
 if __name__ == "__main__":
