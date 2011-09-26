@@ -58,8 +58,9 @@ class Main:
         #self.blockbox_sprite.add(self.blox_cpu)
         
         # Configuracao inicial de blocos
-        self.blox.initiate_blocks()
-        #self.blox_cpu.initiate_blocks()
+        #self.blox_cput.initiate_blocks()
+        if len(sys.argv) > 1: self.blox.file_initiate_blocks(sys.argv[1])
+        else: self.blox.initiate_blocks()
     
     # Chama a funcao de checagem de queda para os blocos necessarios
     def fall(self, bb):

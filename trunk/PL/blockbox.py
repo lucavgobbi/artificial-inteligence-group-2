@@ -43,6 +43,12 @@ class Blockbox(pygame.sprite.Sprite):
         # Lista contendo blocos mudando de posicao
         self.changing_blocks = []
         
+        # Matriz de blocos a serem mostrados na tela
+        self.block_matrix = []
+        
+        # Matriz que representa abstracao da configuracao de blocos atual da tela
+        self.block_config = []
+        
         self.image = load_image("blockbox.PNG")
         self.image.set_alpha(128)       
         self.rect = self.image.get_rect()
@@ -61,13 +67,10 @@ class Blockbox(pygame.sprite.Sprite):
 
     # Cria a configuracao inicial de blocos na tela. Aleatoria, com maximo de 5 linhas preenchidas.
     def initiate_blocks(self):
-	# Matriz de blocos a serem mostrados na tela
-	self.block_matrix = [[]]
-	
-	# Matriz que representa abstracao da configuracao de blocos atual da tela
-	self.block_config = [[]]
-	
-	# Altura da tela
+        
+        self.block_matrix.append([])
+        self.block_config.append([])
+        # Altura da tela
 	#self.max_height = random.randint(2,5)
 	self.max_height = 8
 	
@@ -484,3 +487,21 @@ class Blockbox(pygame.sprite.Sprite):
             print line
 	    line = ""
         
+    def file_initiate_blocks(self, name):
+        f = open(name, 'r')
+        
+        for i in range(11, -1, -1):
+            line = f.readline().strip(" \n").split()
+            block_row = []
+            number_row = []
+            for k in range(0, 6):
+                btype = int(line[k])
+                
+                b = Block((self.rect.left, self.rect.top, k, i), 22, 21, btype)
+                if btype != 0: Blockbox.block_group.add(b)
+            
+                block_row.append(b)
+                number_row.append(btype)
+            
+            self.block_matrix.insert(0, block_row)
+            self.block_config.insert(0, number_row)
