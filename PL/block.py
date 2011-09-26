@@ -39,6 +39,9 @@ class Block(pygame.sprite.Sprite):
         # indica queo bloco esta no meio da animacao de eliminacao. Nada pode acontecer com ele durante
         # essa animacao
         self.isClearing = False
+        
+        # indica que o bloco esta no meio da animacao de troca
+        self.isChanging = False
     	
 	if btype == None:
 	    self.block_type = random.randint(1,5)
@@ -127,6 +130,8 @@ class Block(pygame.sprite.Sprite):
 	self.color_name = "white"
 	self.image = None
 	self.isClearing = False
+	self.isFalling = False
+	self.isChanging = False
 	self.same_ver = False
 	self.same_hor = False
         

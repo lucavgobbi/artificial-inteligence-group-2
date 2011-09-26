@@ -51,15 +51,15 @@ class Main:
 	
 	# objetos principais da tela. Blox e o quadro que contem os blocos.
         self.blox = Blockbox(152, 262, 100, 150, self.screen)
-        self.blox_cpu = Blockbox(152, 262, 388, 150, self.screen)
+        #self.blox_cpu = Blockbox(152, 262, 388, 150, self.screen)
         
         # Grupo de sprites unico para o cursor e para a caixa de blocos.
         self.blockbox_sprite = pygame.sprite.RenderUpdates(self.blox)
-        self.blockbox_sprite.add(self.blox_cpu)
+        #self.blockbox_sprite.add(self.blox_cpu)
         
         # Configuracao inicial de blocos
         self.blox.initiate_blocks()
-        self.blox_cpu.initiate_blocks()
+        #self.blox_cpu.initiate_blocks()
     
     # Chama a funcao de checagem de queda para os blocos necessarios
     def fall(self, bb):
@@ -71,8 +71,8 @@ class Main:
     # Caso tenha sido dado o comando para mudar dois blocos de posicao, esse metodo chama o metodo
     # que muda os dois blocos na posicao desejada de lugar
     def change(self, bb, pos_x, pos_y):
-        if bb.change_fin == False:
-            bb.change_fin = bb.block_change(pos_x, pos_y)
+        for block in bb.changing_blocks:
+            bb.change_fin = bb.block_change(block)
             
     def clear(self, bb):
 	for block_set in bb.cleared_blocks:
@@ -106,11 +106,9 @@ class Main:
                         
                     # Tecla A inicia uma mudanca de blocos. Seta a flag change_fin e grava a posicao do cursor
                     elif event.key == pygame.K_a:
-                        if self.blox.cursor.pos_rel_y < self.blox.max_height:
-			    self.blox.change_fin = False
-			    self.blox_cpu.change_fin = False
-			    pos_x = self.blox.cursor.pos_rel_x
-			    pos_y = self.blox.cursor.pos_rel_y
+                        if (self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y) not in self.blox.changing_blocks:
+                            self.blox.changing_blocks.append((self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y))
+                            #self.blox_cpu.changing_blocks.append((self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y))
 			
 		    # Tecla para testes. imprime as matrizes de blocos
 		    elif event.key == pygame.K_f:
@@ -122,20 +120,20 @@ class Main:
 			self.blox.print_active()
 					
 		    elif event.key == pygame.K_q:
-			running = 0
+                        running = 0
 			
 			
 	    # processo de mudanca de bloco
             self.change(self.blox, pos_x, pos_y)
-            self.change(self.blox_cpu, pos_x, pos_y)
+            #self.change(self.blox_cpu, pos_x, pos_y)
             
             # process de queda de bloco
             self.fall(self.blox)
-            self.fall(self.blox_cpu)
+            #self.fall(self.blox_cpu)
             
             # processo de eliminacao de blocos
             self.clear(self.blox)
-            self.clear(self.blox_cpu)
+            #self.clear(self.blox_cpu)
                
             # Desenha a blockbox e depois seus elementos. Retorna a area em que desenhamos a blockbox para atualiza-la
             self.rectlist = self.blockbox_sprite.draw(self.screen)
@@ -148,7 +146,7 @@ class Main:
             
             # Jogo rodando em 60fps
             #print self.clock.tick()
-            self.clock.tick(40)
+            self.clock.tick(50)
 
 
 if __name__ == "__main__":
