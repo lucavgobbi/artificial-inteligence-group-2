@@ -25,6 +25,8 @@ class Blockbox(pygame.sprite.Sprite):
         self.pos_x = pos_x
         self.pos_y = pos_y
         
+        self.frame_counter = 0
+        
         # Trava o cursor enquanto dois blocos nao terminarem de mudar de posicao
         self.change_fin = True
         
@@ -141,7 +143,7 @@ class Blockbox(pygame.sprite.Sprite):
 	block_number_right = self.block_config[pos_y][pos_x+1]
 	
 	# Flags que indicam se algum dos blocos esta sendo eliminado, algum esta caindo
-        # ou algum dos dois ja esta sendo eliminado
+        # ou algum dos dois ja esta sendo trocado de posicao
 	clearing = block_left.isClearing or block_right.isClearing
 	falling = block_left.isFalling or block_right.isFalling
 	changing = block_left.isChanging != block_right.isChanging
@@ -150,13 +152,17 @@ class Blockbox(pygame.sprite.Sprite):
 	    self.changing_blocks.remove((pos_x, pos_y))
 	    return
 	
+	block_left.isChanging = True
+	block_right.isChanging = True
 	# Se a posicao dos blocos na tela nao tiver sido trocada completamente ainda, movimenta
 	# cada bloco a ser trocado um pouco mais e retorna falso
-	if self.move_value < 22:
-	    #
-	    block_left.change_position("right", 11)
-	    block_right.change_position("left", 11)
-	    self.move_value += 11
+	block_left.change_position("right", 11)
+        block_right.change_position("left", 11)
+        block_left.move_value += 11
+        block_right.move_value += 11
+        
+	if block_left.move_value < 22:
+	    return
 	    
 	# Se tiver terminado de trocar dois blocos de lugar, troca eles de lugar nas
 	# determinadas matrizes
@@ -164,8 +170,6 @@ class Blockbox(pygame.sprite.Sprite):
 	    
 	    # Flag checa se foi trocado um bloco inativo por um ativo. So e necessario checar se um
 	    # blocos devem cair se em trocas se for trocado um inativo com um ativo
-	    check = False
-	    check = (block_left.isActive != block_right.isActive)
 	    
 	    # Troca os valores no bloco. Primeiro da esquerda depois da direita
 	    block_left.col += 1
@@ -179,21 +183,25 @@ class Blockbox(pygame.sprite.Sprite):
 	    self.block_config[pos_y][pos_x+1] = block_number_left
 	    self.block_config[pos_y][pos_x] = block_number_right
 	    
-	    if check:		
-	        self.changed.append((block_left.col, block_left.line))
-	        self.changed.append((block_right.col, block_right.line))
-	        
+	    # Checa se foi trocado um bloco inativo por um ativo. So e necessario checar se um
+            # blocos devem cair se em trocas se for trocado um inativo com um ativo
+	    if block_left.isActive != block_right.isActive:
+                self.check_fall((block_left.col, block_left.line))
+                self.check_fall((block_right.col, block_right.line))
+                         
+            # Checa se os dois blocos tem tipos diferentes. Se tiverem, deve testar se ha eliminacao
+            # a fazer
 	    if block_left.block_type != block_right.block_type:
-                pair = []
-                if block_left.block_type != 0: pair.append((pos_x, pos_y))
-                if block_right.block_type != 0: pair.append((pos_x+1, pos_y))
                 self.check_clear([(pos_x, pos_y), (pos_x+1, pos_y)])
 	    
 	    # reseta o valor de movimento
-	    self.move_value = 0
+	    block_left.move_value = 0
+            block_right.move_value = 0
+            block_left.isChanging = False
+            block_right.isChanging = False
 	    self.changing_blocks.remove((pos_x, pos_y))
 	    
-	    return True
+	    return
     
     # Checa se um bloco deve cair, e se sim, quantas posicoes
     def check_fall(self, (pos_x, pos_y)):
@@ -201,7 +209,7 @@ class Blockbox(pygame.sprite.Sprite):
 	# Se o bloco for ativo, checa se ele proprio deve cair
 	if self.block_matrix[pos_y][pos_x].isActive:
 	    if pos_y-1 >=0 and (not self.block_matrix[pos_y-1][pos_x].isActive):
-                self.falling_blocks.append([[pos_x, pos_y]])
+                self.falling_blocks.insert(0, [[pos_x, pos_y]])
 		self.block_matrix[pos_y][pos_x].isFalling = True
 	        self.block_matrix[pos_y][pos_x].fall_timer = 15        
 	        
@@ -218,9 +226,8 @@ class Blockbox(pygame.sprite.Sprite):
 		self.block_matrix[k][pos_x].isFalling = True
 		self.block_matrix[k][pos_x].fall_timer = 15
 		k+=1
-	    if bl != []: self.falling_blocks.append(bl)
+	    if bl != []: self.falling_blocks.insert(0, bl)
 		
-	self.changed.remove((pos_x, pos_y))
         return
         
     # Cuida da queda de blocos. Recebe um grupo de blocos que deve cair. A logica e que temos um bloco
@@ -230,17 +237,17 @@ class Blockbox(pygame.sprite.Sprite):
     def block_fall(self, block_set):
 	
 	pos_x, pos_y = block_set[0]
+	changing = self.block_matrix[pos_y-1][pos_x].isChanging
+	for block in block_set: self.block_matrix[block[1]][block[0]].fall_timer -= 1
+	
 	# Timer no primeiro elemento do grupo de blocos que deve cair. Assim que zerar, o
 	# grupo comeca a cair
-	if self.block_matrix[pos_y][pos_x].fall_timer != 0:
-	    for block in block_set:
-	        self.block_matrix[block[1]][block[0]].fall_timer -= 1
+	if self.block_matrix[pos_y][pos_x].fall_timer > 0 or changing:
 	    return
 	
 	# Se a posicao do primeiro bloco do grupo de blocos em queda nao for linha 0 e o 
 	# bloco abaixo dele for inativo, o grupo cai uma posicao. Essa queda e feita
 	# trocando-se o bloco de lugar com o que esta abaixo dele
-	
 	if pos_y-1 >=0 and (not self.block_matrix[pos_y-1][pos_x].isActive):
 	    
 	    # Movimenta cada bloco do grupo de blocos que deve cair uma posicao para baixo
@@ -275,48 +282,15 @@ class Blockbox(pygame.sprite.Sprite):
 	        for block in block_set:
                     pos_x, pos_y = block
 		    self.block_matrix[pos_y][pos_x].fall_timer = self.block_matrix[new][pos_x].fall_timer
-		
+		    
 	    if self.block_matrix[new][pos_x].fall_timer == 0:
-		for block in block_set: self.block_matrix[block[1]][block[0]].isFalling = False
+		for block in block_set: 
+		    self.block_matrix[block[1]][block[0]].isFalling = False
+		    self.block_matrix[block[1]][block[0]].fall_timer = 0
+		    
+		self.falling_blocks.remove(block_set)
 		self.check_clear(block_set)
-		self.falling_blocks.remove(block_set)	
 
-    def check_clear_teste(self, block_set):
-	added_ver = 0
-	added_hor = 0
-	added = 0
-	clear_ver = []
-	clear_hor = []
-	clear = []
-	pos_x, pos_y = block_set[0]
-	
-	added_ver += self.check_clear_down((pos_x, pos_y), clear_ver)
-	added_ver += self.check_clear_up((pos_x, pos_y), clear_ver)
-	added_hor += self.check_clear_left((pos_x, pos_y), clear_hor)
-	added_hor += self.check_clear_right((pos_x, pos_y), clear_hor)
-	if added_ver >= 2:
-            clear.extend(clear_ver)
-            added += added_ver
-        if added_hor >= 2:
-            clear.extend(clear_hor)
-            added += added_hor
-        if clear != []:
-            clear.append((pos_x, pos_y))
-                  
-	for block in block_set[1:]:
-            pos_x, pos_y = block
-            clear_hor = []
-	    added_hor = 0
-	    added_hor += self.check_clear_left((pos_x, pos_y), clear_hor)
-	    added_hor += self.check_clear_right((pos_x, pos_y), clear_hor)
-	    if added_hor >= 2:
-                if not (pos_x, pos_y) in clear:
-                    clear_hor.append((pos_x, pos_y))
-	        clear.extend(clear_hor)
-	        added += added_hor
-            
-        if added >= 2:
-            self.cleared_blocks.append(clear)
             
     ## Checa em um determinado grupo de blocos se ha blocos que devem ser eliminados
     ## olhando os vizinhos desses blocos
@@ -327,7 +301,7 @@ class Blockbox(pygame.sprite.Sprite):
                      
         for block in block_set:
             pos_x, pos_y = block
-            if self.block_matrix[pos_y][pos_x].isActive:
+            if self.block_matrix[pos_y][pos_x].isActive and not self.block_matrix[pos_y][pos_x].isFalling:
                 clear_ver  = []
                 clear_hor = []
                 added_ver = 0
@@ -341,7 +315,7 @@ class Blockbox(pygame.sprite.Sprite):
                     added += added_ver + 1
                     clear.extend(clear_ver)
                     if not (pos_x, pos_y) in clear:
-                        clear.append((pos_x, pos_y)) 
+                        clear.append((pos_x, pos_y))
                 
                 if added_hor >= 2:
                     added += added_hor + 1
@@ -351,6 +325,9 @@ class Blockbox(pygame.sprite.Sprite):
                     
         if added >= 3:
             self.cleared_blocks.append(clear)
+            return True
+        else:
+            return False
 
     ## Auxiliar de eliminacao. Checa se o blocos abaixo de determinando bloco sao iguais a ele
     ## Retorna o numero de blocos adicionados a lista parcial
@@ -439,16 +416,13 @@ class Blockbox(pygame.sprite.Sprite):
 	if not self.block_matrix[pos_y][pos_x].isClearing:
 	    for block in block_set:
 		pos_x, pos_y = block
-	        self.block_matrix[pos_y][pos_x].isClearing = True
-	        self.block_matrix[pos_y][pos_x].blinking = 45
-	        self.block_matrix[pos_y][pos_x].block_blinking()
-	    return
+		self.block_matrix[pos_y][pos_x].set_clearing(True)
+	        
         for block in block_set:
 	    pos_x, pos_y = block
 	    self.block_matrix[pos_y][pos_x].block_blinking()
 	    
 	if self.block_matrix[pos_y][pos_x].blinking == 0:
-	    aux = []
 	    for block in block_set:
 		pos_x, pos_y = block
 		self.changed.append(block)
@@ -464,30 +438,50 @@ class Blockbox(pygame.sprite.Sprite):
     ## Checa se bloco da esquerda e da mesma cor que o bloco dado
     # param (pos_x, pos_y): coordenadas do bloco testado na matriz
     def look_left(self, (pos_x, pos_y)):
-	if pos_x == 0 or self.block_matrix[pos_y][pos_x-1].isFalling or self.block_matrix[pos_y][pos_x-1].isClearing: 
-	    return False
-	else: return self.block_config[pos_y][pos_x] == self.block_config[pos_y][pos_x-1]
+        if pos_x != 0:
+            falling = self.block_matrix[pos_y][pos_x-1].isFalling
+            changing = self.block_matrix[pos_y][pos_x-1].isChanging
+            clearing = self.block_matrix[pos_y][pos_x-1].isClearing
+	    if falling or clearing or changing: 
+	        return False
+	    else: return self.block_config[pos_y][pos_x] == self.block_config[pos_y][pos_x-1]
+	else: return False
 	
     ## Checa se bloco da esquerda e da mesma cor que o bloco dado
     # param (pos_x, pos_y): coordenadas do bloco testado na matriz
     def look_right(self, (pos_x, pos_y)):
-	if pos_x == 5 or self.block_matrix[pos_y][pos_x+1].isFalling or self.block_matrix[pos_y][pos_x+1].isClearing:
-	    return False
-	else: return self.block_config[pos_y][pos_x] == self.block_config[pos_y][pos_x+1]
+        if pos_x != 5:
+            falling = self.block_matrix[pos_y][pos_x+1].isFalling
+            changing = self.block_matrix[pos_y][pos_x+1].isChanging
+            clearing = self.block_matrix[pos_y][pos_x+1].isClearing
+	    if falling or clearing or changing: 
+	        return False
+	    else: return self.block_config[pos_y][pos_x] == self.block_config[pos_y][pos_x+1]
+	else: return False
 	
     ## Checa se bloco da esquerda e da mesma cor que o bloco dado
     # param (pos_x, pos_y): coordenadas do bloco testado na matriz
     def look_up(self, (pos_x, pos_y)):
-	if pos_y == 11 or self.block_matrix[pos_y+1][pos_x].isFalling or self.block_matrix[pos_y+1][pos_x].isClearing: 
-	    return False
-	else: return self.block_config[pos_y][pos_x] == self.block_config[pos_y+1][pos_x]
+        if pos_y != 11:
+            falling = self.block_matrix[pos_y+1][pos_x].isFalling
+            changing = self.block_matrix[pos_y+1][pos_x].isChanging
+            clearing = self.block_matrix[pos_y+1][pos_x].isClearing
+            if falling or clearing or changing: 
+	        return False
+	    else: return self.block_config[pos_y][pos_x] == self.block_config[pos_y+1][pos_x]
+	else: return False
 	
     ## Checa se bloco da esquerda e da mesma cor que o bloco dado
     # param (pos_x, pos_y): coordenadas do bloco testado na matriz
     def look_down(self, (pos_x, pos_y)):
-	if pos_y == 0 or self.block_matrix[pos_y-1][pos_x].isFalling or self.block_matrix[pos_y-1][pos_x].isClearing: 
-	    return False
-	else: return self.block_config[pos_y][pos_x] == self.block_config[pos_y-1][pos_x]	
+        if pos_y != 0:
+            falling = self.block_matrix[pos_y-1][pos_x].isFalling
+            changing = self.block_matrix[pos_y-1][pos_x].isChanging
+            clearing = self.block_matrix[pos_y-1][pos_x].isClearing
+            if falling or clearing or changing: 
+	        return False
+	    else: return self.block_config[pos_y][pos_x] == self.block_config[pos_y-1][pos_x]
+	else: return False
 
 
 

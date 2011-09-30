@@ -2,6 +2,7 @@
 
 import os, sys
 import pygame
+import random
 from pygame.locals import *
 from blockbox import Blockbox
 from cursor import Choice_cursor
@@ -22,6 +23,16 @@ class Main:
         self.width = w
         self.height = h
         
+        self.p_counter = 0
+        self.p_flag = False
+        
+        self.k_counter = 0
+        self.k_flag = False
+        
+        self.r_counter = 0
+        self.r_limit = 0
+        self. r_flag = False
+        
         # Seta o seguramento de teclas. Quando uma tecla e pressionada e segurada, da o efeito
         # de aperta-la diversas vezes
         pygame.key.set_repeat(60,60)
@@ -33,6 +44,10 @@ class Main:
         self.blink_test_flag = False
         self.blink_pos_x = 0
         self.blink_pos_y = 0
+        
+        self.update_timer = 0
+        self.update_counter = 0
+        self.rise_value = 3
 
         # Inicializa janela principal com os tamanhos dados
         self.screen = pygame.display.set_mode((self.width, self.height),pygame.DOUBLEBUF, 32)
@@ -66,25 +81,44 @@ class Main:
     def fall(self, bb):
 	for block_coord in bb.changed:
 	    bb.check_fall(block_coord)
+	    bb.changed.remove(block_coord)
 	for block_set in bb.falling_blocks:
 	    bb.block_fall(block_set)
     
     # Caso tenha sido dado o comando para mudar dois blocos de posicao, esse metodo chama o metodo
     # que muda os dois blocos na posicao desejada de lugar
-    def change(self, bb, pos_x, pos_y):
+    def change(self, bb):
         for block in bb.changing_blocks:
             bb.change_fin = bb.block_change(block)
             
     def clear(self, bb):
 	for block_set in bb.cleared_blocks:
 	    bb.block_clear(block_set)
+	   
+	   
+    def update_blockbox(self):
+        if self.update_timer > 75:
+            Blockbox.block_group.update(self.rise_value)
+            Blockbox.cursor_group.update(self.rise_value)
+            self.update_counter += 1
+            self.update_timer = 0
+            
+        else: self.update_timer += 1
+        
+        if self.update_counter == 7:
+            self.update_counter = 0
+            self.blox.update_blocks()
+            
+        self.rise_value = 3
 
     # Loop principal do programa
     def main_loop(self):
         running = 1
-        
         pos_x = 0
         pos_y = 0
+        
+        aux_x = 0
+        aux_y = 0
         
         self.load_sprites()
  
@@ -122,33 +156,89 @@ class Main:
 					
 		    elif event.key == pygame.K_q:
                         running = 0
-			
-			
-	    # processo de mudanca de bloco
-            self.change(self.blox, pos_x, pos_y)
-            #self.change(self.blox_cpu, pos_x, pos_y)
+                        
+                    elif event.key == pygame.K_SPACE:
+                        self.update_timer += 75
+                        self.rise_value = 7
+
+                    elif event.key == pygame.K_p:
+                        if self.p_flag == False:
+                            self.p_flag = True
+                            self.blox.changing_blocks.append((self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y))
+
+                    elif event.key == pygame.K_r:
+                        if self.r_flag == False:
+                            self.r_flag = True
+                            self.r_limit = random.randint(100, 200)
+
+                    elif event.key == pygame.K_k:
+                        if self.k_flag == False:
+                            self.k_flag = True
+                            self.blox.changing_blocks.append((self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y))
+
+            #self.p_count()
             
+            #self.k_count()
+            
+            #self.r_count()
+            
+	    # processo de mudanca de bloco
+            self.change(self.blox)
             # process de queda de bloco
             self.fall(self.blox)
-            #self.fall(self.blox_cpu)
-            
             # processo de eliminacao de blocos
             self.clear(self.blox)
-            #self.clear(self.blox_cpu)
-               
+                         
             # Desenha a blockbox e depois seus elementos. Retorna a area em que desenhamos a blockbox para atualiza-la
             self.rectlist = self.blockbox_sprite.draw(self.screen)
             Blockbox.block_group.draw(self.screen)
             Blockbox.cursor_group.draw(self.screen)
             
             # Atualiza a tela apenas na area da blockbox. Subsequentemente limpa a tela com o background
+            #self.update_blockbox()
             pygame.display.update(self.rectlist)
             self.blockbox_sprite.clear(self.screen, self.background)
             
             # Jogo rodando em 60fps
             #print self.clock.tick()
-            self.clock.tick(50)
+            self.clock.tick(60)
+            
+            
+    """   METODOS PARA TESTES   """
 
+    def p_count(self):
+        if self.p_flag:
+            self.p_counter += 1
+            if self.p_counter == 23:
+                 self.blox.changing_blocks.append((1, 0))
+                 self.p_counter = 0
+                 self.p_flag = False
+                 
+    
+    def k_count(self):
+        if self.k_flag:
+            self.k_counter += 1
+            if self.k_counter == 17:
+                 self.blox.changing_blocks.append((self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y-1))
+                 self.k_counter = 0
+                 self.k_flag = False
+                 
+    # TESTE: Gera diversos movimentos aleatorios em espacos de frames pequeno para testar colisoes
+    # entre operacoes
+    def r_count(self):
+        if self.r_flag:
+            if self.r_counter < self.r_limit:
+                if self.r_counter % 1 == 0:
+                    aux_x = random.randint(0, 4)
+                    aux_y = random.randint(0, 11)
+                    self.blox.changing_blocks.append((aux_x, aux_y))
+            else:
+                self.r_flag = False
+                self.r_counter = 0
+                self.r_limit = 0
+                return
+                
+            self.r_counter += 1
 
 if __name__ == "__main__":
     # Inicializa objeto main e entra no loop principal

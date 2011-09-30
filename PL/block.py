@@ -22,8 +22,6 @@ class Block(pygame.sprite.Sprite):
         self.block_width = bw
         self.block_height = bh
         
-        # valor que controla a queda de um bloco
-        self.isFalling = False
         
         # timer para o bloco comecar a cair
         self.fall_timer = 0
@@ -31,10 +29,9 @@ class Block(pygame.sprite.Sprite):
         # contador pra piscar o bloco
         self.blinking = 0
         self.b_counter = 1
-        
-        # booleanos que dizem se algum vizinho horizontal e vertical do bloco e da mesma cor que ele
-        self.same_hor = False
-        self.same_ver = False
+
+        # valor que controla a queda de um bloco
+        self.isFalling = False
         
         # indica queo bloco esta no meio da animacao de eliminacao. Nada pode acontecer com ele durante
         # essa animacao
@@ -42,6 +39,11 @@ class Block(pygame.sprite.Sprite):
         
         # indica que o bloco esta no meio da animacao de troca
         self.isChanging = False
+    	
+    	self.move_value = 0
+    	
+    	#
+    	self.update_counter = 0
     	
 	if btype == None:
 	    self.block_type = random.randint(1,5)
@@ -57,6 +59,14 @@ class Block(pygame.sprite.Sprite):
 	
 	self.rect.left = bb_rect_left + 10 + self.col*self.block_width
 	self.rect.top = bb_rect_top + 5 + (11-self.line)*self.block_height
+	
+	
+    def update(self, rise_value):
+        self.change_position("up", rise_value)
+        self.update_counter += rise_value
+        if self.update_counter == 21:
+            self.update_counter = 0
+            self.change_coord("up", 1)
 	
     # Muda posicao do bloco
     def change_position(self, direction, value):
@@ -79,7 +89,15 @@ class Block(pygame.sprite.Sprite):
 	    self.line -= value 
 	if direction == "up":
 	    self.line += value 
-	    
+
+    def set_clearing(self, flag):
+        if flag:
+            self.isClearing = True
+            self.blinking = 45
+        else:
+            self.isClearing = False
+            self.blinking = 0
+
     # efeito de piscar do bloco.
     def block_blinking(self):
 	self.blinking -= self.b_counter
