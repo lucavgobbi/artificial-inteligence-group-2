@@ -64,7 +64,6 @@ class Block(pygame.sprite.Sprite):
         self.update_counter += rise_value
         if self.update_counter == 21:
             self.update_counter = 0
-            self.change_coord("up", 1)
             
     # Muda posicao do bloco
     def change_position(self, direction, value):

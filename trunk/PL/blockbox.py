@@ -67,6 +67,34 @@ class Blockbox(pygame.sprite.Sprite):
     def draw_elements(self, surf):
         return
 
+    def update_blocks(self):
+        new_block_line = []
+        new_number_line = []
+
+        for line in self.block_matrix:
+            for block in line:
+                block.line += 1
+
+        for k in range(0,6):
+            b = Block((self.rect.left, self.rect.top, k, 0), 22, 21, random.randint(1,5))
+            new_block_line.append(b)
+            new_number_line.append(b.block_type)
+            Blockbox.block_group.add(b)
+            
+        self.block_matrix.insert(0, new_block_line)
+        self.block_config.insert(0, new_number_line)
+        
+        for group in self.falling_blocks:
+            for coord in group:
+                coord[1] += 1
+
+        for group in self.cleared_blocks:
+            for coord in group:
+                coord[1] += 1
+
+        for coord in self.changing_blocks:
+            coord[1] += 1
+
     # Cria a configuracao inicial de blocos na tela. Aleatoria, com maximo de 5 linhas preenchidas.
     def initiate_blocks(self):
         
@@ -149,7 +177,7 @@ class Blockbox(pygame.sprite.Sprite):
         changing = block_left.isChanging != block_right.isChanging
         
         if clearing or changing or falling:
-            self.changing_blocks.remove((pos_x, pos_y))
+            self.changing_blocks.remove([pos_x, pos_y])
             return
         
         block_left.isChanging = True
@@ -186,20 +214,20 @@ class Blockbox(pygame.sprite.Sprite):
             # Checa se foi trocado um bloco inativo por um ativo. So e necessario checar se um
             # blocos devem cair se em trocas se for trocado um inativo com um ativo
             if block_left.isActive != block_right.isActive:
-                self.check_fall((block_left.col, block_left.line))
-                self.check_fall((block_right.col, block_right.line))
+                self.check_fall([block_left.col, block_left.line])
+                self.check_fall([block_right.col, block_right.line])
                          
             # Checa se os dois blocos tem tipos diferentes. Se tiverem, deve testar se ha eliminacao
             # a fazer
             if block_left.block_type != block_right.block_type:
-                self.check_clear([(pos_x, pos_y), (pos_x+1, pos_y)])
+                self.check_clear([[pos_x, pos_y], [pos_x+1, pos_y]])
     
             # reseta o valor de movimento
             block_left.move_value = 0
             block_right.move_value = 0
             block_left.isChanging = False
             block_right.isChanging = False
-            self.changing_blocks.remove((pos_x, pos_y))
+            self.changing_blocks.remove([pos_x, pos_y])
  
             return
     
@@ -307,21 +335,21 @@ class Blockbox(pygame.sprite.Sprite):
                 added_ver = 0
                 added_hor = 0
             
-                added_ver += self.check_clear_down((pos_x, pos_y), clear_ver, clear)
-                added_ver += self.check_clear_up((pos_x, pos_y), clear_ver, clear)
-                added_hor += self.check_clear_left((pos_x, pos_y), clear_hor, clear)
-                added_hor += self.check_clear_right((pos_x, pos_y), clear_hor, clear)
+                added_ver += self.check_clear_down([pos_x, pos_y], clear_ver, clear)
+                added_ver += self.check_clear_up([pos_x, pos_y], clear_ver, clear)
+                added_hor += self.check_clear_left([pos_x, pos_y], clear_hor, clear)
+                added_hor += self.check_clear_right([pos_x, pos_y], clear_hor, clear)
                 if added_ver >= 2:
                     added += added_ver + 1
                     clear.extend(clear_ver)
-                    if not (pos_x, pos_y) in clear:
-                        clear.append((pos_x, pos_y))
+                    if not [pos_x, pos_y] in clear:
+                        clear.append([pos_x, pos_y])
                 
                 if added_hor >= 2:
                     added += added_hor + 1
                     clear.extend(clear_hor)
-                    if not (pos_x, pos_y) in clear:
-                        clear.append((pos_x, pos_y))
+                    if not [pos_x, pos_y] in clear:
+                        clear.append([pos_x, pos_y])
                     
         if added >= 3:
             self.cleared_blocks.append(clear)
@@ -331,78 +359,78 @@ class Blockbox(pygame.sprite.Sprite):
 
     ## Auxiliar de eliminacao. Checa se o blocos abaixo de determinando bloco sao iguais a ele
     ## Retorna o numero de blocos adicionados a lista parcial
-    # param (pos_x, pos_y): coordenadas do bloco na matriz
+    # param [pos_x, pos_y]: coordenadas do bloco na matriz
     # param clear: lista de eliminacao parcial a que pertencera o bloco
     # param total: lista total de eliminacao gerada ate o momento 
     def check_clear_down(self, (pos_x, pos_y), clear, total):
         
         c = 0
             
-        if self.look_down((pos_x, pos_y)):
-            if (pos_x, pos_y-1) not in total: 
-                clear.append((pos_x, pos_y-1))
+        if self.look_down([pos_x, pos_y]):
+            if [pos_x, pos_y-1] not in total: 
+                clear.append([pos_x, pos_y-1])
                 c += 1
                 
-            if self.look_down((pos_x, pos_y-1)):
-                if (pos_x, pos_y-2) not in total:
-                    clear.append((pos_x, pos_y-2))
+            if self.look_down([pos_x, pos_y-1]):
+                if [pos_x, pos_y-2] not in total:
+                    clear.append([pos_x, pos_y-2])
                     c += 1
         return c
                 
     ## Auxiliar de eliminacao. Checa se o blocos acima de determinando bloco sao iguais a ele
     ## Retorna o numero de blocos adicionados a lista parcial
-    # param (pos_x, pos_y): coordenadas do bloco testado na matriz
+    # param [pos_x, pos_y]: coordenadas do bloco testado na matriz
     # param clear: lista de eliminacao parcial a que pertencera o bloco
     # param total: lista total de eliminacao gerada ate o momento 
     def check_clear_up(self, (pos_x, pos_y), clear, total):
         c = 0
             
-        if self.look_up((pos_x, pos_y)):
-            if (pos_x, pos_y+1) not in total: 
-                clear.append((pos_x, pos_y+1))
+        if self.look_up([pos_x, pos_y]):
+            if [pos_x, pos_y+1] not in total: 
+                clear.append([pos_x, pos_y+1])
                 c += 1
                 
-            if self.look_up((pos_x, pos_y+1)):
-                if (pos_x, pos_y+2) not in total:
-                    clear.append((pos_x, pos_y+2))
+            if self.look_up([pos_x, pos_y+1]):
+                if [pos_x, pos_y+2] not in total:
+                    clear.append([pos_x, pos_y+2])
                     c += 1
         return c
         
     ## Auxiliar de eliminacao. Checa se o blocos a esquerda de determinando bloco sao iguais a ele
     ## Retorna o numero de blocos adicionados a lista parcial
-    # param (pos_x, pos_y): coordenadas do bloco testado na matriz
+    # param [pos_x, pos_y]: coordenadas do bloco testado na matriz
     # param clear: lista de eliminacao parcial a que pertencera o bloco
     # param total: lista total de eliminacao gerada ate o momento 
     def check_clear_left(self, (pos_x, pos_y), clear, total):
         c = 0
             
-        if self.look_left((pos_x, pos_y)):
-            if (pos_x-1, pos_y) not in total: 
-                clear.append((pos_x-1, pos_y))
+        if self.look_left([pos_x, pos_y]):
+            if [pos_x-1, pos_y] not in total: 
+                clear.append([pos_x-1, pos_y])
                 c += 1
                 
-            if self.look_left((pos_x-1, pos_y)):
-                if (pos_x-2, pos_y) not in total:
-                    clear.append((pos_x-2, pos_y))
+            if self.look_left([pos_x-1, pos_y]):
+                if [pos_x-2, pos_y] not in total:
+                    clear.append([pos_x-2, pos_y])
                     c += 1
         return c
         
     ## Auxiliar de eliminacao. Checa se o blocos a direita de determinando bloco sao iguais a ele
     ## Retorna o numero de blocos adicionados a lista parcial
-    # param (pos_x, pos_y): coordenadas do bloco testado na matriz
+    # param [pos_x, pos_y]: coordenadas do bloco testado na matriz
     # param clear: lista de eliminacao parcial a que pertencera o bloco
     # param total: lista total de eliminacao gerada ate o momento 
     def check_clear_right(self, (pos_x, pos_y), clear, total):
         c = 0
             
-        if self.look_right((pos_x, pos_y)):
-            if (pos_x+1, pos_y) not in total: 
-                clear.append((pos_x+1, pos_y))
+        if self.look_right([pos_x, pos_y]):
+            if [pos_x+1, pos_y] not in total: 
+                clear.append([pos_x+1, pos_y])
                 c += 1
                 
-            if self.look_right((pos_x+1, pos_y)):
-                if (pos_x+2, pos_y) not in total:
-                    clear.append((pos_x+2, pos_y))
+            if self.look_right([pos_x+1, pos_y]):
+                if [pos_x+2, pos_y] not in total:
+                    clear.append([pos_x+2, pos_y])
                     c += 1
         return c
 
@@ -425,17 +453,17 @@ class Blockbox(pygame.sprite.Sprite):
         if self.block_matrix[pos_y][pos_x].blinking == 0:
             for block in block_set:
                 pos_x, pos_y = block
-                self.changed.append(block)
                 self.block_matrix[pos_y][pos_x].clear()
                 self.block_config[pos_y][pos_x] = 0
                 Blockbox.block_group.remove(self.block_matrix[pos_y][pos_x])
+                self.check_fall(block)
             #print "BLOCK_SET\n\n", block_set, "\n\nBLOCK_SET"
             #print len(block_set)
             self.cleared_blocks.remove(block_set)
             return
             
     ## Checa se bloco da esquerda e da mesma cor que o bloco dado
-    # param (pos_x, pos_y): coordenadas do bloco testado na matriz
+    # param [pos_x, pos_y]: coordenadas do bloco testado na matriz
     def look_left(self, (pos_x, pos_y)):
         if pos_x != 0:
             falling = self.block_matrix[pos_y][pos_x-1].isFalling
@@ -447,7 +475,7 @@ class Blockbox(pygame.sprite.Sprite):
         else: return False
         
     ## Checa se bloco da esquerda e da mesma cor que o bloco dado
-    # param (pos_x, pos_y): coordenadas do bloco testado na matriz
+    # param [pos_x, pos_y]: coordenadas do bloco testado na matriz
     def look_right(self, (pos_x, pos_y)):
         if pos_x != 5:
             falling = self.block_matrix[pos_y][pos_x+1].isFalling
@@ -459,7 +487,7 @@ class Blockbox(pygame.sprite.Sprite):
         else: return False
         
     ## Checa se bloco da esquerda e da mesma cor que o bloco dado
-    # param (pos_x, pos_y): coordenadas do bloco testado na matriz
+    # param [pos_x, pos_y]: coordenadas do bloco testado na matriz
     def look_up(self, (pos_x, pos_y)):
         if pos_y != 11:
             falling = self.block_matrix[pos_y+1][pos_x].isFalling
@@ -471,7 +499,7 @@ class Blockbox(pygame.sprite.Sprite):
         else: return False
         
     ## Checa se bloco da esquerda e da mesma cor que o bloco dado
-    # param (pos_x, pos_y): coordenadas do bloco testado na matriz
+    # param [pos_x, pos_y]: coordenadas do bloco testado na matriz
     def look_down(self, (pos_x, pos_y)):
         if pos_y != 0:
             falling = self.block_matrix[pos_y-1][pos_x].isFalling
