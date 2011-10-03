@@ -63,8 +63,8 @@ class Main:
 
     # Carrega sprites e cria grupos de sprites de inicializacao
     def load_sprites(self):
-	
-	# objetos principais da tela. Blox e o quadro que contem os blocos.
+    
+        # objetos principais da tela. Blox e o quadro que contem os blocos.
         self.blox = Blockbox(152, 262, 100, 150, self.screen)
         #self.blox_cpu = Blockbox(152, 262, 388, 150, self.screen)
         
@@ -79,11 +79,11 @@ class Main:
     
     # Chama a funcao de checagem de queda para os blocos necessarios
     def fall(self, bb):
-	for block_coord in bb.changed:
-	    bb.check_fall(block_coord)
-	    bb.changed.remove(block_coord)
-	for block_set in bb.falling_blocks:
-	    bb.block_fall(block_set)
+        for block_coord in bb.changed:
+            bb.check_fall(block_coord)
+            bb.changed.remove(block_coord)
+        for block_set in bb.falling_blocks:
+            bb.block_fall(block_set)
     
     # Caso tenha sido dado o comando para mudar dois blocos de posicao, esse metodo chama o metodo
     # que muda os dois blocos na posicao desejada de lugar
@@ -92,10 +92,10 @@ class Main:
             bb.change_fin = bb.block_change(block)
             
     def clear(self, bb):
-	for block_set in bb.cleared_blocks:
-	    bb.block_clear(block_set)
-	   
-	   
+        for block_set in bb.cleared_blocks:
+            bb.block_clear(block_set)
+       
+       
     def update_blockbox(self):
         if self.update_timer > 75:
             Blockbox.block_group.update(self.rise_value)
@@ -127,16 +127,16 @@ class Main:
                 if event.type == pygame.QUIT:
                     running = 0
                 elif event.type == pygame.KEYDOWN:
-		    if event.key == pygame.K_UP:
+                    if event.key == pygame.K_UP:
                         self.blox.cursor.move_cursor_UP(event.key, self.blox.rect) # Move Cursor pra cima
                         
-		    elif event.key == pygame.K_DOWN:
+                    elif event.key == pygame.K_DOWN:
                         self.blox.cursor.move_cursor_DOWN(event.key, self.blox.rect) # Move Cursor pra baixo
                         
-		    elif event.key == pygame.K_LEFT:
+                    elif event.key == pygame.K_LEFT:
                         self.blox.cursor.move_cursor_LEFT(event.key, self.blox.rect) # Move Cursor pra esquerda
                         
-		    elif event.key == pygame.K_RIGHT:
+                    elif event.key == pygame.K_RIGHT:
                         self.blox.cursor.move_cursor_RIGHT(event.key, self.blox.rect) # Move Cursor pra direita
                         
                     # Tecla A inicia uma mudanca de blocos. Seta a flag change_fin e grava a posicao do cursor
@@ -144,17 +144,17 @@ class Main:
                         if (self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y) not in self.blox.changing_blocks:
                             self.blox.changing_blocks.append((self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y))
                             #self.blox_cpu.changing_blocks.append((self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y))
-			
-		    # Tecla para testes. imprime as matrizes de blocos
-		    elif event.key == pygame.K_f:
-			print "Matriz de configuracao de blocos"
-			self.blox.print_config_matrix()
-			print "Matriz de blocos"
-			self.blox.print_block_matrix()
-			print "Ativos"
-			self.blox.print_active()
-					
-		    elif event.key == pygame.K_q:
+            
+                    # Tecla para testes. imprime as matrizes de blocos
+                    elif event.key == pygame.K_f:
+                        print "Matriz de configuracao de blocos"
+                        self.blox.print_config_matrix()
+                        print "Matriz de blocos"
+                        self.blox.print_block_matrix()
+                        print "Ativos"
+                        self.blox.print_active()
+                    
+                    elif event.key == pygame.K_q:
                         running = 0
                         
                     elif event.key == pygame.K_SPACE:
@@ -176,13 +176,13 @@ class Main:
                             self.k_flag = True
                             self.blox.changing_blocks.append((self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y))
 
-            #self.p_count()
+            self.p_count()
             
-            #self.k_count()
+            self.k_count()
             
-            #self.r_count()
+            self.r_count()
             
-	    # processo de mudanca de bloco
+            # processo de mudanca de bloco
             self.change(self.blox)
             # process de queda de bloco
             self.fall(self.blox)
@@ -210,7 +210,9 @@ class Main:
         if self.p_flag:
             self.p_counter += 1
             if self.p_counter == 23:
-                 self.blox.changing_blocks.append((1, 0))
+                 self.blox.changing_blocks.append((self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y-1))
+            if self.p_counter == 26:
+                 self.blox.changing_blocks.append((self.blox.cursor.pos_rel_x+1, 5))
                  self.p_counter = 0
                  self.p_flag = False
                  
@@ -228,7 +230,7 @@ class Main:
     def r_count(self):
         if self.r_flag:
             if self.r_counter < self.r_limit:
-                if self.r_counter % 1 == 0:
+                if self.r_counter % 6 == 0:
                     aux_x = random.randint(0, 4)
                     aux_y = random.randint(0, 11)
                     self.blox.changing_blocks.append((aux_x, aux_y))
