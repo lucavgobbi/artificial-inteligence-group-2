@@ -83,7 +83,14 @@ class Blockbox(pygame.sprite.Sprite):
             
         self.block_matrix.insert(0, new_block_line)
         self.block_config.insert(0, new_number_line)
-        
+        self.block_matrix.pop()
+        self.block_config.pop()
+
+
+        for line in self.block_matrix:
+            for block in line:
+                self.check_fall((block.col, block.line))
+
         for group in self.falling_blocks:
             for coord in group:
                 coord[1] += 1
@@ -246,15 +253,16 @@ class Blockbox(pygame.sprite.Sprite):
         # um grupo de blocos que deve cair, e o seu timer e o do primeiro bloco da lista
         else:
             k = pos_y+1
-            if self.block_matrix[k][pos_x].isClearing or self.block_matrix[k][pos_x].isChanging:
-                return
-            bl = []
-            while k < 12 and self.block_matrix[k][pos_x].isActive:
-                bl.append([pos_x, k])
-                self.block_matrix[k][pos_x].isFalling = True
-                self.block_matrix[k][pos_x].fall_timer = 15
-                k+=1
-            if bl != []: self.falling_blocks.insert(0, bl)
+            if k < 12:
+                if self.block_matrix[k][pos_x].isClearing or self.block_matrix[k][pos_x].isChanging:
+                    return
+                bl = []
+                while k < 12 and self.block_matrix[k][pos_x].isActive:
+                    bl.append([pos_x, k])
+                    self.block_matrix[k][pos_x].isFalling = True
+                    self.block_matrix[k][pos_x].fall_timer = 15
+                    k+=1
+                if bl != []: self.falling_blocks.insert(0, bl)
             
         return
         
@@ -457,8 +465,8 @@ class Blockbox(pygame.sprite.Sprite):
                 self.block_config[pos_y][pos_x] = 0
                 Blockbox.block_group.remove(self.block_matrix[pos_y][pos_x])
                 self.check_fall(block)
-            #print "BLOCK_SET\n\n", block_set, "\n\nBLOCK_SET"
-            #print len(block_set)
+            print "BLOCK_SET\n\n", block_set, "\n\nBLOCK_SET"
+            print len(block_set)
             self.cleared_blocks.remove(block_set)
             return
             

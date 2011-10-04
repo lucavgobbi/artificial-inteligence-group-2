@@ -32,7 +32,8 @@ class Main:
         
         self.update_timer = 0
         self.update_counter = 0
-        self.rise_value = 3
+        self.rise_value = 3        
+        self.stop_update_timer = 0
 
         # Inicializa janela principal com os tamanhos dados
         self.screen = pygame.display.set_mode((self.width, self.height),pygame.DOUBLEBUF, 32)
@@ -98,22 +99,25 @@ class Main:
     def clear(self, bb):
         for block_set in bb.cleared_blocks:
             bb.block_clear(block_set)
+            
+        if bb.cleared_blocks != []:
+            self.stop_update_timer = 35 + 15*len(bb.cleared_blocks)
        
        
-    def update_blockbox(self):
-        if self.update_timer > 15:
+    def update_blockbox(self):       
+        if self.update_timer <= 70:
+            self.update_timer += 1
+            
+        else:
             Blockbox.block_group.update(self.rise_value)
             Blockbox.cursor_group.update(self.rise_value)
             self.update_counter += 1
             self.update_timer = 0
-            
-        else: self.update_timer += 1
         
-        #if self.update_counter == 6: self.blox.changing_blocks.append([2, 8])
-        if self.update_counter == 7:
-            self.update_counter = 0
-            self.blox.update_blocks())
-            print self.blox.changing_blocks
+            if self.update_counter == 7:
+                self.update_counter = 0
+                self.blox.update_blocks()
+                
         self.rise_value = 3
 
     # Loop principal do programa
@@ -206,6 +210,7 @@ class Main:
                         if self.k_flag == False:
                             self.k_flag = True
                             self.blox.changing_blocks.append([self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y])
+                          
 
             self.p_count()
             
@@ -219,14 +224,16 @@ class Main:
             self.fall(self.blox)
             # processo de eliminacao de blocos
             self.clear(self.blox)
-                         
+            
             # Desenha a blockbox e depois seus elementos. Retorna a area em que desenhamos a blockbox para atualiza-la
             self.rectlist = self.blockbox_sprite.draw(self.screen)
             Blockbox.block_group.draw(self.screen)
             Blockbox.cursor_group.draw(self.screen)
             
+            #if self.stop_update_timer == 0: self.update_blockbox()
+            #else: self.stop_update_timer -= 1
+            
             # Atualiza a tela apenas na area da blockbox. Subsequentemente limpa a tela com o background
-            self.update_blockbox()
             pygame.display.update(self.rectlist)
             self.blockbox_sprite.clear(self.screen, self.background)
             
@@ -250,8 +257,8 @@ class Main:
     def k_count(self):
         if self.k_flag:
             self.k_counter += 1
-            if self.k_counter == 17:
-                 self.blox.changing_blocks.append([self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y-1])
+            if self.k_counter == 20:
+                 self.blox.changing_blocks.append([3, 2])
                  self.k_counter = 0
                  self.k_flag = False
                  
