@@ -34,6 +34,7 @@ class Choice_cursor(pygame.sprite.Sprite):
     def update(self, rise_value):
         if self.rect.top - rise_value <= self.top_limit:
             self.rect.top += self.cs_h
+            self.pos_rel_y -= 1
             
         self.rect.top -= rise_value
         self.update_counter += rise_value
