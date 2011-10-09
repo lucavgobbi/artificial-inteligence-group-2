@@ -40,6 +40,7 @@ class Main:
         
         # Inicializa o clock
         self.clock = pygame.time.Clock()
+        self.clock_teste = pygame.time.Clock()
         
         # cria um background e anexa a tela
         self.background = pygame.Surface((self.width, self.height)).convert()
@@ -129,6 +130,8 @@ class Main:
         aux_x = 0
         aux_y = 0
         
+        q = 0
+        
         self.load_sprites()
  
         while running:
@@ -187,6 +190,8 @@ class Main:
                         self.blox.print_block_matrix()
                         print "Ativos"
                         self.blox.print_active()
+                        print "Tempo Execucao medio"
+                        print "{0:5f}".format(self.frame_counter/self.frame_number)
                     
                     elif event.key == pygame.K_q:
                         running = 0
@@ -227,18 +232,31 @@ class Main:
             
             # Desenha a blockbox e depois seus elementos. Retorna a area em que desenhamos a blockbox para atualiza-la
             self.rectlist = self.blockbox_sprite.draw(self.screen)
+            
+            # Adiciona o retangulo do score na lista de retangulos a ser atualizados. Devemos fazer
+            # isso pois o score fica fora da blockbox
+            self.rectlist.append(self.blox.score.rect)
+            
+            # Desenha os elementos da blockbox na tela
             Blockbox.block_group.draw(self.screen)
             Blockbox.cursor_group.draw(self.screen)
+            Blockbox.score_group.draw(self.screen)
             
-            #if self.stop_update_timer == 0: self.update_blockbox()
-            #else: self.stop_update_timer -= 1
+            """if self.stop_update_timer == 0: self.update_blockbox()
+            else: self.stop_update_timer -= 1"""
             
-            # Atualiza a tela apenas na area da blockbox. Subsequentemente limpa a tela com o background
+            #q = raw_input()
+            
+            # Atualiza a tela apenas na area da blockbox e do score. Subsequentemente limpa a tela com o background
             pygame.display.update(self.rectlist)
-            self.blockbox_sprite.clear(self.screen, self.background)
+            Blockbox.score_group.clear(self.screen, self.background)
             
+            # Como o score fica fora da blockbox, devemos limpar tambem a area ocupada por ele
+            self.blockbox_sprite.clear(self.screen, self.background)
+
             # Jogo rodando em 60fps
-            self.clock.tick(60)
+            self.frame_number += 1
+            self.frame_counter += self.clock.tick(60)
             
             
     """   METODOS PARA TESTES   """
@@ -257,8 +275,8 @@ class Main:
     def k_count(self):
         if self.k_flag:
             self.k_counter += 1
-            if self.k_counter == 20:
-                 self.blox.changing_blocks.append([3, 2])
+            if self.k_counter == 1:
+                 self.blox.changing_blocks.append([self.blox.cursor.pos_rel_x-1, self.blox.cursor.pos_rel_y-1])
                  self.k_counter = 0
                  self.k_flag = False
                  
@@ -267,9 +285,10 @@ class Main:
     def r_count(self):
         if self.r_flag:
             if self.r_counter < self.r_limit:
-                if self.r_counter % 7 == 0:
+                if self.r_counter % 3 == 0:
                     aux_x = random.randint(0, 4)
                     aux_y = random.randint(0, 11)
+                    print (aux_x, aux_y)
                     self.blox.changing_blocks.append([aux_x, aux_y])
             else:
                 self.r_flag = False

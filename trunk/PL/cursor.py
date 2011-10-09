@@ -5,7 +5,7 @@ from adds import *
 # Representa o cursor movimentado pelo jogador
 class Choice_cursor(pygame.sprite.Sprite):
     # Inicializacao
-    def __init__(self, screen, surf_rect, w, h):
+    def __init__(self, surf_rect, w, h):
     
         # Inicializa classe sprite
         pygame.sprite.Sprite.__init__(self)
@@ -22,7 +22,7 @@ class Choice_cursor(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (surf_rect.left+10 + self.cs_w*2 ,surf_rect.top+5 + self.cs_h)
     
-        # limite superior que o bloco nao pode passar
+        # limite superior que o cursor nao pode passar
         self.top_limit = surf_rect.top + 5
     
         self.update_counter = 0
