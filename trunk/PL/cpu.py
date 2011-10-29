@@ -130,4 +130,3 @@ class Cpu:
                 
         if self.t_move_queue[0] == []:
             self.t_move_queue.pop(0)
-            print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"

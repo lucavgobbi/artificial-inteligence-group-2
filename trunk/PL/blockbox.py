@@ -55,7 +55,14 @@ class Blockbox(pygame.sprite.Sprite):
         self.block_matrix = []
         
         # Matriz que representa abstracao da configuracao de blocos atual da tela
-        self.block_config = []      
+        self.block_config = []
+
+        self.stop_update = True
+
+        # Quando uma linha com blocos passa da ultima linha superior, o jogador falha. Uma falha corta o score do jogador
+        # pela metade, e reseta sua blockbox para um estado inicial
+        self.fail = False
+        self.fail_timer = 90
         
         self.image = load_image("blockbox.PNG")
         self.image.set_alpha(128)       
@@ -73,6 +80,8 @@ class Blockbox(pygame.sprite.Sprite):
         new_block_line = []
         new_number_line = []
 
+        fail = False
+        
         for line in self.block_matrix:
             for block in line:
                 block.line += 1
@@ -85,9 +94,17 @@ class Blockbox(pygame.sprite.Sprite):
             
         self.block_matrix.insert(0, new_block_line)
         self.block_config.insert(0, new_number_line)
-        self.block_matrix.pop()
+        last_block_line = self.block_matrix.pop()
         self.block_config.pop()
-
+        
+        for block in last_block_line:
+            if block.block_type != 0:
+                fail = True
+                Blockbox.block_group.remove(block)
+        if fail:
+            self.failure()
+            self.stop_update = True
+            return
 
         for line in self.block_matrix:
             for block in line:
@@ -106,7 +123,11 @@ class Blockbox(pygame.sprite.Sprite):
 
     # Cria a configuracao inicial de blocos na tela. Aleatoria, com maximo de 5 linhas preenchidas.
     def initiate_blocks(self):
-        
+        self.block_config = []
+        self.changing_blocks = []
+        self.falling_blocks = []
+        self.changed = []
+        self.cleared_blocks = []
         self.block_matrix.append([])
         self.block_config.append([])
         # Altura da tela
@@ -467,7 +488,7 @@ class Blockbox(pygame.sprite.Sprite):
             
         if self.block_matrix[pos_y][pos_x].blinking == 0:
             number = len(block_set)            
-            self.score.increase_score(self.rect, number, 0)
+            self.score.increase_score(number, 0)
             
             for block in block_set:
                 pos_x, pos_y = block
@@ -528,6 +549,35 @@ class Blockbox(pygame.sprite.Sprite):
             else: return self.block_config[pos_y][pos_x] == self.block_config[pos_y-1][pos_x]
         else: return False
 
+
+    def failure(self):
+
+        if not self.fail:
+            self.block_config = []
+            for block_line in self.block_matrix:
+                for block in block_line:
+                    if block.block_type != 0:
+                        block.image = Block.block_colors[block.color_name][6]
+            self.fail = True
+
+        if self.block_matrix != [] and self.fail_timer % 2 == 0 and self.fail_timer < 60:
+            line = self.block_matrix.pop()
+
+            for block in line:
+                if block.block_type != 0:
+                    Blockbox.block_group.remove(block)
+                    block.clear()
+
+        self.fail_timer -= 1
+
+        if self.fail_timer == 0:
+            self.fail = False
+            print len(Blockbox.block_group)
+            self.score.change_score(self.score.value/2)
+            self.initiate_blocks()
+            self.fail_timer = 90
+
+        return
 
 
     # TESTE: Printa matriz de configuracao de blocos
