@@ -6,6 +6,7 @@ import random
 from pygame.locals import *
 from blockbox import Blockbox
 from cursor import Choice_cursor
+from cpu import Cpu
 from adds import *
 
 if not pygame.font: print "Warning: Fonts nao disponivel"
@@ -46,7 +47,7 @@ class Main:
         self.background = pygame.Surface((self.width, self.height)).convert()
         self.background.fill((0,0,0))
         self.screen.blit(self.background, (0,0))
-        
+    
         
         """ Variaveis de teste """
         self.frame_number = 0.0
@@ -63,7 +64,7 @@ class Main:
         
         self.r_counter = 0
         self.r_limit = 0
-        self. r_flag = False
+        self.r_flag = False
         
         """ Variaveis de teste """
 
@@ -72,22 +73,19 @@ class Main:
     
         # objetos principais da tela. Blox e o quadro que contem os blocos.
         self.blox = Blockbox(152, 262, 100, 150, self.screen)
-        #self.blox_cpu = Blockbox(152, 262, 388, 150, self.screen)
+        self.cpu = Cpu((152, 262, 388, 150), self.screen)
         
         # Grupo de sprites unico para o cursor e para a caixa de blocos.
         self.blockbox_sprite = pygame.sprite.RenderUpdates(self.blox)
-        #self.blockbox_sprite.add(self.blox_cpu)
+        self.blockbox_sprite.add(self.cpu.blockbox)
         
         # Configuracao inicial de blocos
-        #self.blox_cput.initiate_blocks()
-        if len(sys.argv) > 1: self.blox.file_initiate_blocks(sys.argv[1])
-        else: self.blox.initiate_blocks()
+        self.blox.initiate_blocks()
+        if len(sys.argv) > 1: self.cpu.blockbox.file_initiate_blocks(sys.argv[1])
+        else: self.cpu.blockbox.initiate_blocks()
     
     # Chama a funcao de checagem de queda para os blocos necessarios
     def fall(self, bb):
-        """for block_coord in bb.changed:
-            bb.check_fall(block_coord)
-            bb.changed.remove(block_coord)"""
         for block_set in bb.falling_blocks:
             bb.block_fall(block_set)
     
@@ -145,7 +143,7 @@ class Main:
                         self.frame_counter += 1
                         print "media:" + str(self.frame_gap_total/self.frame_counter)"""
                         self.last_frame = self.frame_number
-                        self.blox.cursor.move_cursor_UP(event.key, self.blox.rect) # Move Cursor pra cima
+                        self.blox.cursor.move_cursor_UP(self.blox.rect) # Move Cursor pra cima
                         
                     elif event.key == pygame.K_DOWN:
                         """"self.frame_gap = self.frame_number - self.last_frame
@@ -153,7 +151,7 @@ class Main:
                         self.frame_counter += 1
                         print "media:" + str(self.frame_gap_total/self.frame_counter)"""
                         self.last_frame = self.frame_number
-                        self.blox.cursor.move_cursor_DOWN(event.key, self.blox.rect) # Move Cursor pra baixo
+                        self.blox.cursor.move_cursor_DOWN(self.blox.rect) # Move Cursor pra baixo
                         
                     elif event.key == pygame.K_LEFT:
                         """"self.frame_gap = self.frame_number - self.last_frame
@@ -161,7 +159,7 @@ class Main:
                         self.frame_counter += 1
                         print "media:" + str(self.frame_gap_total/self.frame_counter)"""
                         self.last_frame = self.frame_number
-                        self.blox.cursor.move_cursor_LEFT(event.key, self.blox.rect) # Move Cursor pra esquerda
+                        self.blox.cursor.move_cursor_LEFT(self.blox.rect) # Move Cursor pra esquerda
                         
                     elif event.key == pygame.K_RIGHT:
                         """".frame_gap = self.frame_number - self.last_frame
@@ -169,7 +167,7 @@ class Main:
                         self.frame_counter += 1
                         print "media:" + str(self.frame_gap_total/self.frame_counter)"""
                         self.last_frame = self.frame_number
-                        self.blox.cursor.move_cursor_RIGHT(event.key, self.blox.rect) # Move Cursor pra direita
+                        self.blox.cursor.move_cursor_RIGHT(self.blox.rect) # Move Cursor pra direita
                         
                     # Tecla A inicia uma mudanca de blocos. Seta a flag change_fin e grava a posicao do cursor
                     elif event.key == pygame.K_a:
@@ -195,7 +193,12 @@ class Main:
                     
                     elif event.key == pygame.K_q:
                         running = 0
-                        
+
+                    elif event.key == pygame.K_l:
+                        self.cpu.raw_move_queue = [[0,1], [1,2], [1,3], [3,3], [5,6]]
+                        self.cpu.transform_movements()
+                        print self.cpu.raw_move_queue[0]
+
                     elif event.key == pygame.K_SPACE:
                         self.update_timer += 75
                         self.rise_value = 7
@@ -223,12 +226,18 @@ class Main:
             
             self.r_count()
             
+            if self.cpu.t_move_queue != []:
+                self.cpu.execute_cpu_movements()
+            
             # processo de mudanca de bloco
             self.change(self.blox)
+            self.change(self.cpu.blockbox)
             # process de queda de bloco
             self.fall(self.blox)
+            self.fall(self.cpu.blockbox)
             # processo de eliminacao de blocos
             self.clear(self.blox)
+            self.clear(self.cpu.blockbox)
             
             # Desenha a blockbox e depois seus elementos. Retorna a area em que desenhamos a blockbox para atualiza-la
             self.rectlist = self.blockbox_sprite.draw(self.screen)
@@ -236,16 +245,13 @@ class Main:
             # Adiciona o retangulo do score na lista de retangulos a ser atualizados. Devemos fazer
             # isso pois o score fica fora da blockbox
             self.rectlist.append(self.blox.score.rect)
-            
+            self.rectlist.append(self.cpu.blockbox.score.rect)
+
             # Desenha os elementos da blockbox na tela
             Blockbox.block_group.draw(self.screen)
             Blockbox.cursor_group.draw(self.screen)
             Blockbox.score_group.draw(self.screen)
             
-            """if self.stop_update_timer == 0: self.update_blockbox()
-            else: self.stop_update_timer -= 1"""
-            
-            #q = raw_input()
             
             # Atualiza a tela apenas na area da blockbox e do score. Subsequentemente limpa a tela com o background
             pygame.display.update(self.rectlist)
@@ -256,7 +262,7 @@ class Main:
 
             # Jogo rodando em 60fps
             self.frame_number += 1
-            self.frame_counter += self.clock.tick(60)
+            self.frame_counter += self.clock.tick(50)
             
             
     """   METODOS PARA TESTES   """
@@ -298,6 +304,7 @@ class Main:
                 
             self.r_counter += 1
 
+        
 if __name__ == "__main__":
     # Inicializa objeto main e entra no loop principal
     main_window = Main()

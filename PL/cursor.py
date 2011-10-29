@@ -47,22 +47,22 @@ class Choice_cursor(pygame.sprite.Sprite):
         surf.blit(self.image, self.rect)
 
     # Controla o movimento do cursor
-    def move_cursor_UP(self, key, surf_rect):    
+    def move_cursor_UP(self, surf_rect):    
         if self.rect.top - self.cs_h >= self.top_limit:
             self.rect.top -= self.cs_h
             self.pos_rel_y += 1
         
-    def move_cursor_DOWN(self, key, surf_rect):    
+    def move_cursor_DOWN(self, surf_rect):    
         if self.rect.top + self.cs_h <= surf_rect.bottom - 20:
             self.rect.top += self.cs_h
             self.pos_rel_y -= 1
         
-    def move_cursor_LEFT(self, key, surf_rect):
+    def move_cursor_LEFT(self, surf_rect):
         if self.rect.left - self.cs_w >= surf_rect.left:
             self.rect.left -= self.cs_w
             self.pos_rel_x -= 1
         
-    def move_cursor_RIGHT(self, key, surf_rect):   
+    def move_cursor_RIGHT(self, surf_rect):   
         if self.rect.right + self.cs_w <= surf_rect.right:
             self.rect.left += self.cs_w
             self.pos_rel_x += 1
