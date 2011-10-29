@@ -90,7 +90,7 @@ class Block(pygame.sprite.Sprite):
     def set_clearing(self, flag):
         if flag:
             self.isClearing = True
-            self.blinking = 45
+            self.blinking = 25
         else:
             self.isClearing = False
             self.blinking = 0

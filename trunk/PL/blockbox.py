@@ -30,6 +30,8 @@ class Blockbox(pygame.sprite.Sprite):
         self.pos_y = pos_y
         
         self.frame_counter = 0
+
+        self.univ_fall_timer = 10
         
         # Trava o cursor enquanto dois blocos nao terminarem de mudar de posicao
         self.change_fin = True
@@ -248,7 +250,7 @@ class Blockbox(pygame.sprite.Sprite):
             if pos_y-1 >=0 and (not self.block_matrix[pos_y-1][pos_x].isActive):
                 self.falling_blocks.insert(0, [[pos_x, pos_y]])
                 self.block_matrix[pos_y][pos_x].isFalling = True
-                self.block_matrix[pos_y][pos_x].fall_timer = 15
+                self.block_matrix[pos_y][pos_x].fall_timer = self.univ_fall_timer
                 
         # Se o bloco for inativo, checa se os blocos acima dele devem cair. Se devem, cria uma
         # lista com esses blocos e adiciona na lista de blocos em queda. Essa lista representa
@@ -262,7 +264,7 @@ class Blockbox(pygame.sprite.Sprite):
                 while k < 12 and self.block_matrix[k][pos_x].isActive:
                     bl.append([pos_x, k])
                     self.block_matrix[k][pos_x].isFalling = True
-                    self.block_matrix[k][pos_x].fall_timer = 15
+                    self.block_matrix[k][pos_x].fall_timer = self.univ_fall_timer
                     k+=1
                 if bl != []: self.falling_blocks.insert(0, bl)
             
