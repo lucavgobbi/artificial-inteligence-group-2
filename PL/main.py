@@ -31,11 +31,12 @@ class Main:
         # areas 'sujas' da tela que devem ser atualizadas
         self.rectlist = []
 
-        self.max_update_value = 30
+        self.max_update_value = 6
         self.update_timer = self.max_update_value
         self.update_counter = 0
         self.rise_value = 3        
         self.stop_update_timer = 0
+        self.stop_update = True
 
         # Inicializa janela principal com os tamanhos dados
         self.screen = pygame.display.set_mode((self.width, self.height),pygame.DOUBLEBUF, 32)
@@ -81,7 +82,7 @@ class Main:
         #self.blockbox_sprite.add(self.cpu.blockbox)
         
         # Configuracao inicial de blocos
-        self.blox.initiate_blocks()
+        #self.blox.initiate_blocks()
 
         if len(sys.argv) > 1:
             self.blox.file_initiate_blocks(sys.argv[1])
@@ -176,6 +177,8 @@ class Main:
                         self.blox.print_active()
                         print "Tempo Execucao medio"
                         print "{0:5f}".format(self.frame_counter/self.frame_number)
+                        print "Numero de blocos no grupo"
+                        print "{0:d}".format(len(Blockbox.block_group))
                     
                     elif event.key == pygame.K_q:
                         running = 0
@@ -191,10 +194,13 @@ class Main:
                         self.rise_value = 7
 
                     elif event.key == pygame.K_p:
-                        if self.p_flag == False:
-                            self.p_flag = True
-                            self.blox.changing_blocks.append([self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y])
-                            self.blox.changing_blocks.append([self.blox.cursor.pos_rel_x+1, self.blox.cursor.pos_rel_y])
+                        if self.blox.stop_update:
+                            self.blox.stop_update = False
+                        else: self.blox.stop_update = True
+                        #if self.p_flag == False:
+                            #self.p_flag = True
+                            #self.blox.changing_blocks.append([self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y])
+                            #self.blox.changing_blocks.append([self.blox.cursor.pos_rel_x+1, self.blox.cursor.pos_rel_y])
 
                     elif event.key == pygame.K_r:
                         if self.r_flag == False:
@@ -216,17 +222,20 @@ class Main:
             #if self.cpu.t_move_queue != []:
                 #self.cpu.execute_cpu_movements()
             
-            # processo de mudanca de bloco
-            self.change(self.blox)
+            if not self.blox.fail:
+                self.change(self.blox)
+                self.fall(self.blox)
+                self.clear(self.blox)
+            else:
+                self.blox.failure()
             #self.change(self.cpu.blockbox)
             # process de queda de bloco
-            self.fall(self.blox)
             #self.fall(self.cpu.blockbox)
             # processo de eliminacao de blocos
-            self.clear(self.blox)
             #self.clear(self.cpu.blockbox)
 
-            self.update_blockbox()
+            if not self.blox.stop_update:
+                self.update_blockbox()
             
             # Desenha a blockbox e depois seus elementos. Retorna a area em que desenhamos a blockbox para atualiza-la
             self.rectlist = self.blockbox_sprite.draw(self.screen)
@@ -245,13 +254,15 @@ class Main:
             # Atualiza a tela apenas na area da blockbox e do score. Subsequentemente limpa a tela com o background
             pygame.display.update(self.rectlist)
             Blockbox.score_group.clear(self.screen, self.background)
+            Blockbox.cursor_group.clear(self.screen, self.background)
+            Blockbox.block_group.clear(self.screen, self.background)
             
             # Como o score fica fora da blockbox, devemos limpar tambem a area ocupada por ele
             self.blockbox_sprite.clear(self.screen, self.background)
 
             # Jogo rodando em 60fps
             self.frame_number += 1
-            self.frame_counter += self.clock.tick(33)
+            self.frame_counter += self.clock.tick(30)
             
             
     """   METODOS PARA TESTES   """
