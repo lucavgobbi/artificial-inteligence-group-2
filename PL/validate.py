@@ -66,4 +66,5 @@ def analize(m):
     kill = 0
     while(fall(m) or kill == 0):
         kill += analCols(m) + analLines(m)
+    return kill
             
