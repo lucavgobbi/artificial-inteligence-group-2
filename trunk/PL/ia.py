@@ -40,7 +40,7 @@ def maxPath(moves):
     move.addChild(moves)
     #search the max
     list = []
-    max = findMax(move, list)
+    max = findMax(move)
     print list
     print max
         
