@@ -6,9 +6,35 @@ class Main:
     # Inicializa classe main
     def __init__(self):
         m = [[1,1,2,1,2,2],[0,0,1,1,3,2],[0,0,2,3,3,0],[0,0,3,3,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
-        analize(m)
+        
+        #m = [[1,1,2,1,2,2],[4,4,3,0,0,0],[0,3,5,0,0,0],[0,4,3,0,0,0],[0,0,0,0,0#,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,#0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
+        
+        #m = [[0,0,1,2,0,0],[0,0,2,1,0,0],[0,0,1,2,0,0],[0,0,2,1,0,0],[0,0,1,2,0#,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,#0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
+
+        p = analize(m)
         printMatrix(m)
-        ia(m)
+        tree = buildTree(m)
+        maxPath(tree)
+#printMoves(a)
+
+def printMoves(m):
+    for i in m:
+        printMove(i)
+
+def printMove(m):
+    print str(m.p) + " - " + str(m.r) + ":" + str(m.c)
+
+def printTree(tree, h):
+    print "Altura: " + str(h)
+    for move in tree:
+        printMove(move)
+    for move in tree:
+        if(move.child != None):
+            print "Filhos de: "
+            printMove(move)
+            printMatrix(move.m)
+            printTree(move.child, h + 1)
+        
     
 def printMatrix(m):
         for i in range(11, -1, -1):
