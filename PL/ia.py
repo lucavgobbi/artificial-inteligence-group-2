@@ -39,20 +39,28 @@ def maxPath(moves):
     move = Move(0,0,0,[])
     move.addChild(moves)
     #search the max
-    list = []
-    max = findMax(move)
-    print list
-    print max
+    max = updateMoves(move)
+    bestMoves = []
+    findMax(move.child, bestMoves)
+    printMoves(bestMoves)
         
-def findMax(move):
+def updateMoves(move):
     maxP = 0
     if (move.child == None):
         return move.p
     else:
         for node in move.child:
-            maxNode = findMax(node)
+            maxNode = updateMoves(node)
             if(maxP <= maxNode):
                 maxP = maxNode
-        return maxP + move.p
+        move.p += maxP 
+        return maxP
 
-            
+def findMax(moves, bestMoves):
+    maxMove = Move(0,0,0,[])
+    for move in moves:
+        if(maxMove.p <= move.p):
+            maxMove = move
+    bestMoves.append(maxMove)
+    if(maxMove.child != None):
+        findMax(maxMove.child, bestMoves)
