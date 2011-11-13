@@ -8,6 +8,7 @@ from blockbox import Blockbox
 from cursor import Choice_cursor
 from cpu import Cpu
 from adds import *
+from chron import chronometer
 
 if not pygame.font: print "Warning: Fonts nao disponivel"
 if not pygame.mixer: print "Warning: Mixer nao disponivel"
@@ -31,7 +32,7 @@ class Main:
         # areas 'sujas' da tela que devem ser atualizadas
         self.rectlist = []
 
-        self.max_update_value = 6
+        self.max_update_value = 12
         self.update_timer = self.max_update_value
         self.update_counter = 0
         self.rise_value = 3        
@@ -44,6 +45,10 @@ class Main:
         # Inicializa o clock
         self.clock = pygame.time.Clock()
         self.clock_teste = pygame.time.Clock()
+
+        self.timer = chronometer(pygame.time.get_ticks(), 10, 10)
+        self.timer_group = pygame.sprite.RenderUpdates()
+        self.timer_group.add(self.timer)
         
         # cria um background e anexa a tela
         self.background = pygame.Surface((self.width, self.height)).convert()
@@ -93,8 +98,16 @@ class Main:
     
     # Chama a funcao de checagem de queda para os blocos necessarios
     def fall(self, bb):
+        clear_test = []
+        
         for block_set in bb.falling_blocks:
-            bb.block_fall(block_set)
+            if bb.block_fall(block_set):
+                clear_test.append(block_set)
+
+        if clear_test != []:
+            for block_set in clear_test:
+                bb.falling_blocks.remove(block_set)
+                bb.check_clear(block_set)
     
     # Caso tenha sido dado o comando para mudar dois blocos de posicao, esse metodo chama o metodo
     # que muda os dois blocos na posicao desejada de lugar
@@ -235,7 +248,7 @@ class Main:
             #self.clear(self.cpu.blockbox)
 
             if not self.blox.stop_update:
-                self.update_blockbox()
+                self.update_blockbox()            
             
             # Desenha a blockbox e depois seus elementos. Retorna a area em que desenhamos a blockbox para atualiza-la
             self.rectlist = self.blockbox_sprite.draw(self.screen)
@@ -243,12 +256,14 @@ class Main:
             # Adiciona o retangulo do score na lista de retangulos a ser atualizados. Devemos fazer
             # isso pois o score fica fora da blockbox
             self.rectlist.append(self.blox.score.rect)
+            self.rectlist.append(self.timer.update_chronometer())
             #self.rectlist.append(self.cpu.blockbox.score.rect)
 
             # Desenha os elementos da blockbox na tela
             Blockbox.block_group.draw(self.screen)
             Blockbox.cursor_group.draw(self.screen)
             Blockbox.score_group.draw(self.screen)
+            self.timer_group.draw(self.screen)
             
             
             # Atualiza a tela apenas na area da blockbox e do score. Subsequentemente limpa a tela com o background
@@ -256,6 +271,7 @@ class Main:
             Blockbox.score_group.clear(self.screen, self.background)
             Blockbox.cursor_group.clear(self.screen, self.background)
             Blockbox.block_group.clear(self.screen, self.background)
+            self.timer_group.clear(self.screen, self.background)
             
             # Como o score fica fora da blockbox, devemos limpar tambem a area ocupada por ele
             self.blockbox_sprite.clear(self.screen, self.background)
