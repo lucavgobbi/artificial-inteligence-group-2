@@ -31,7 +31,7 @@ class Blockbox(pygame.sprite.Sprite):
         
         self.frame_counter = 0
 
-        self.univ_fall_timer = 10
+        self.univ_fall_timer = 15
         
         # Trava o cursor enquanto dois blocos nao terminarem de mudar de posicao
         self.change_fin = True
@@ -299,7 +299,16 @@ class Blockbox(pygame.sprite.Sprite):
         
         pos_x, pos_y = block_set[0]
         changing = self.block_matrix[pos_y-1][pos_x].isChanging
-        for block in block_set: self.block_matrix[block[1]][block[0]].fall_timer -= 1
+        for block in block_set:
+            try: self.block_matrix[block[1]][block[0]].fall_timer -= 1
+            except IndexError:
+                print "CONFIGURACAO"
+                self.print_config_matrix()
+                print "BLOCOS"
+                self.print_block_matrix()
+                print "INDEX"
+                print pos_x, pos_y
+            
         
         # Timer no primeiro elemento do grupo de blocos que deve cair. Assim que zerar, o
         # grupo comeca a cair
@@ -332,6 +341,8 @@ class Blockbox(pygame.sprite.Sprite):
             self.block_matrix[pos_y][pos_x] = Block((self.rect.left, self.rect.top, pos_x, pos_y), 22, 21, 0)
             self.block_config[pos_y][pos_x] = 0
             
+            return False 
+            
         else:
             # Se o bloco inicial do grupo nao estiver na linha 0, iguala seu timer ao bloco abaixo dele
             # fazemos isso pois possivel que o grupo de blocos tenha sido parado no ar por um bloco que
@@ -345,12 +356,12 @@ class Blockbox(pygame.sprite.Sprite):
                     self.block_matrix[pos_y][pos_x].fall_timer = self.block_matrix[new][pos_x].fall_timer
                     
             if self.block_matrix[new][pos_x].fall_timer == 0:
-                for block in block_set: 
+                for block in block_set:
                     self.block_matrix[block[1]][block[0]].isFalling = False
                     self.block_matrix[block[1]][block[0]].fall_timer = 0
-                    
-                self.falling_blocks.remove(block_set)
-                self.check_clear(block_set)
+
+                #self.check_clear(block_set)
+                return True
 
             
     ## Checa em um determinado grupo de blocos se ha blocos que devem ser eliminados
@@ -359,7 +370,6 @@ class Blockbox(pygame.sprite.Sprite):
     def check_clear(self, block_set):
         added = 0
         clear = []
-                     
         for block in block_set:
             pos_x, pos_y = block
             if self.block_matrix[pos_y][pos_x].isActive and not self.block_matrix[pos_y][pos_x].isFalling:
@@ -372,6 +382,7 @@ class Blockbox(pygame.sprite.Sprite):
                 added_ver += self.check_clear_up([pos_x, pos_y], clear_ver, clear)
                 added_hor += self.check_clear_left([pos_x, pos_y], clear_hor, clear)
                 added_hor += self.check_clear_right([pos_x, pos_y], clear_hor, clear)
+                
                 if added_ver >= 2:
                     added += added_ver + 1
                     clear.extend(clear_ver)
@@ -576,6 +587,7 @@ class Blockbox(pygame.sprite.Sprite):
             self.score.change_score(self.score.value/2)
             self.initiate_blocks()
             self.fail_timer = 90
+            self.stop_update = False
 
         return
 
@@ -615,7 +627,7 @@ class Blockbox(pygame.sprite.Sprite):
         for i in range(11, -1, -1):
             line = line + "Linha {0:02d}:".format(i)
             for k in range(0,6):
-                line = line + "{0:10s}".format(str(self.block_matrix[i][k].isActive))
+                line = line + "{0:10s}".format(str(self.block_matrix[i][k].isFalling))
             print line
             line = ""
             
