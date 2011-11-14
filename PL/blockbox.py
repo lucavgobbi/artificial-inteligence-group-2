@@ -57,7 +57,7 @@ class Blockbox(pygame.sprite.Sprite):
         # Matriz que representa abstracao da configuracao de blocos atual da tela
         self.block_config = []
 
-        self.stop_update = True
+        self.stop_update = 0
 
         # Quando uma linha com blocos passa da ultima linha superior, o jogador falha. Uma falha corta o score do jogador
         # pela metade, e reseta sua blockbox para um estado inicial
@@ -103,12 +103,8 @@ class Blockbox(pygame.sprite.Sprite):
                 Blockbox.block_group.remove(block)
         if fail:
             self.failure()
-            self.stop_update = True
+            self.stop_update = -1
             return
-
-        for line in self.block_matrix:
-            for block in line:
-                self.check_fall((block.col, block.line))
 
         for group in self.falling_blocks:
             for coord in group:
@@ -302,12 +298,15 @@ class Blockbox(pygame.sprite.Sprite):
         for block in block_set:
             try: self.block_matrix[block[1]][block[0]].fall_timer -= 1
             except IndexError:
+                print "Block set"
+                print block_set
                 print "CONFIGURACAO"
                 self.print_config_matrix()
                 print "BLOCOS"
                 self.print_block_matrix()
                 print "INDEX"
                 print pos_x, pos_y
+                break
             
         
         # Timer no primeiro elemento do grupo de blocos que deve cair. Assim que zerar, o
@@ -360,7 +359,6 @@ class Blockbox(pygame.sprite.Sprite):
                     self.block_matrix[block[1]][block[0]].isFalling = False
                     self.block_matrix[block[1]][block[0]].fall_timer = 0
 
-                #self.check_clear(block_set)
                 return True
 
             
@@ -488,10 +486,8 @@ class Blockbox(pygame.sprite.Sprite):
     def block_clear(self, block_set):
         pos_x, pos_y = block_set[0]
         
-        if not self.block_matrix[pos_y][pos_x].isClearing:
-            for block in block_set:
-                pos_x, pos_y = block
-                self.block_matrix[pos_y][pos_x].set_clearing(True)
+        if self.block_matrix[pos_y][pos_x].blinking == self.block_matrix[pos_y][pos_x].max_blinking_value:
+            self.stop_update += len(block_set) * 15 + self.block_matrix[pos_y][pos_x].line
                 
         for block in block_set:
             pos_x, pos_y = block
@@ -587,7 +583,7 @@ class Blockbox(pygame.sprite.Sprite):
             self.score.change_score(self.score.value/2)
             self.initiate_blocks()
             self.fail_timer = 90
-            self.stop_update = False
+            self.stop_update = 0
 
         return
 

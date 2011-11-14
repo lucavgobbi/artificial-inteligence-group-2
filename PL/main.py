@@ -207,9 +207,9 @@ class Main:
                         self.rise_value = 7
 
                     elif event.key == pygame.K_p:
-                        if self.blox.stop_update:
-                            self.blox.stop_update = False
-                        else: self.blox.stop_update = True
+                        if self.blox.stop_update != 0:
+                            self.blox.stop_update = 0
+                        else: self.blox.stop_update = -1
                         #if self.p_flag == False:
                             #self.p_flag = True
                             #self.blox.changing_blocks.append([self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y])
@@ -247,8 +247,9 @@ class Main:
             # processo de eliminacao de blocos
             #self.clear(self.cpu.blockbox)
 
-            if not self.blox.stop_update:
-                self.update_blockbox()            
+            if self.blox.stop_update == 0:
+                self.update_blockbox()
+            elif self.blox.stop_update > 0: self.blox.stop_update -= 1    
             
             # Desenha a blockbox e depois seus elementos. Retorna a area em que desenhamos a blockbox para atualiza-la
             self.rectlist = self.blockbox_sprite.draw(self.screen)
