@@ -27,6 +27,7 @@ class Block(pygame.sprite.Sprite):
         self.fall_timer = 0
         
         # contador pra piscar o bloco
+        self.max_blinking_value = 25
         self.blinking = 0
         self.b_counter = 1
 
@@ -90,7 +91,7 @@ class Block(pygame.sprite.Sprite):
     def set_clearing(self, flag):
         if flag:
             self.isClearing = True
-            self.blinking = 25
+            self.blinking = self.max_blinking_value
         else:
             self.isClearing = False
             self.blinking = 0
