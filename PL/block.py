@@ -129,8 +129,11 @@ class Block(pygame.sprite.Sprite):
         elif self.block_type == 5:
             self.color_name = "green"
             
-        if Block.block_colors[self.color_name] == []:
-            Block.block_colors[self.color_name] = [load_image(self.color_name+"_B"+str(i)+".PNG") for i in range(0,7)]
+        try:
+            if Block.block_colors[self.color_name] == []:
+                Block.block_colors[self.color_name] = [load_image(self.color_name+"_B"+str(i)+".PNG") for i in range(0,7)]
+        except AttributeError:
+            print self.block_type
 
         self.image = Block.block_colors[self.color_name][0]
         self.image_ref = Block.block_colors[self.color_name][0]

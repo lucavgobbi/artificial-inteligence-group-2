@@ -57,7 +57,9 @@ class Blockbox(pygame.sprite.Sprite):
         # Matriz que representa abstracao da configuracao de blocos atual da tela
         self.block_config = []
 
-        self.stop_update = 0
+        # Contador de stop. Se -1, tela parada (para testes), 0 blocos sao adicionados, maior que 0 tempo de pausa em decorrencia
+        # da eliminacao de blocos
+        self.stop_update = -1
 
         # Quando uma linha com blocos passa da ultima linha superior, o jogador falha. Uma falha corta o score do jogador
         # pela metade, e reseta sua blockbox para um estado inicial
@@ -87,7 +89,17 @@ class Blockbox(pygame.sprite.Sprite):
                 block.line += 1
 
         for k in range(0,6):
-            b = Block((self.rect.left, self.rect.top, k, 0), 22, 21, random.randint(1,5))
+
+            btype = random.randint(1,5)
+            if k >= 2:
+                if btype == self.block_config[0][k-1] == self.block_config[0][k-2]:
+                    btype = (btype % 5) + 1
+                    
+            if btype == self.block_config[0][k] == self.block_config[1][k]:
+                btype = (btype % 5) + 1
+            
+                    
+            b = Block((self.rect.left, self.rect.top, k, 0), 22, 21, btype)
             new_block_line.append(b)
             new_number_line.append(b.block_type)
             Blockbox.block_group.add(b)
@@ -134,8 +146,11 @@ class Blockbox(pygame.sprite.Sprite):
         for k in range(0,6):
             # Escolhe um bloco aleatoriamente. Se 0, a posicao e vazia
             btype = random.randint(1,5)
-            
-             # Cria um novo bloco de cor indicada por btype
+            if k >= 2:
+                if btype == self.block_config[0][k-1] == self.block_config[0][k-2]:
+                    btype = (btype % 5) + 1
+
+            # Cria um novo bloco de cor indicada por btype
             b = Block((self.rect.left, self.rect.top, k, 0), 22, 21, btype)
             
             # Apenda o novo bloco na matriz de blocos, e o numero correspondente na de
@@ -158,7 +173,15 @@ class Blockbox(pygame.sprite.Sprite):
             for k in range(0,6):
                 
                 # Adiciona o bloco caso ele seja diferente de vazio, e existir bloco abaixo dele
-                if self.block_config[i-1][k] != 0: btype = random.randint(0,5)
+                if self.block_config[i-1][k] != 0:
+                    btype = random.randint(0,5)
+                    if k >= 2:
+                        if btype == self.block_config[i][k-1] == self.block_config[i][k-2]:
+                            btype = (btype + 1) % 5
+                        
+                    if i >= 2:
+                        if btype == self.block_config[i-1][k] == self.block_config[i-2][k]:
+                            btype = (btype + 1) % 5
                 else: btype = 0
                     
                 # Cria um novo bloco de cor indicada por btype
@@ -223,9 +246,6 @@ class Blockbox(pygame.sprite.Sprite):
         # Se tiver terminado de trocar dois blocos de lugar, troca eles de lugar nas
         # determinadas matrizes
         else:
-            
-            # Flag checa se foi trocado um bloco inativo por um ativo. So e necessario checar se um
-            # blocos devem cair se em trocas se for trocado um inativo com um ativo
             
             # Troca os valores no bloco. Primeiro da esquerda depois da direita
             block_left.col += 1
@@ -579,7 +599,6 @@ class Blockbox(pygame.sprite.Sprite):
 
         if self.fail_timer == 0:
             self.fail = False
-            print len(Blockbox.block_group)
             self.score.change_score(self.score.value/2)
             self.initiate_blocks()
             self.fail_timer = 90
