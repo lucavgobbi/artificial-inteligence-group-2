@@ -43,6 +43,7 @@ def maxPath(moves):
     bestMoves = []
     findMax(move.child, bestMoves)
     printMoves(bestMoves)
+    return bestMoves
         
 def updateMoves(move):
     maxP = 0
