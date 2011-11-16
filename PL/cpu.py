@@ -5,6 +5,9 @@ import pygame
 import random
 from blockbox import Blockbox
 from adds import *
+from ia import *
+from move import *
+from vteste import *
 
 class Cpu:
     
@@ -18,7 +21,18 @@ class Cpu:
         self.cursor_final_position = [2,10]
         
         self.move_timer = 10
+
+    def call_ia(self):
+        moves = buildTree(self.blockbox.block_config)
+        best = maxPath(moves)
+        l = []
         
+        for m in best:
+            l.append([m.c, m.r])
+            
+        self.raw_move_queue = l
+        self.transform_movements()
+
     def transform_movements(self):
         size = len(self.raw_move_queue)
         move_list = []
@@ -76,6 +90,10 @@ class Cpu:
         
 
     def execute_cpu_movements(self):
+        
+        if self.t_move_queue == []:
+            return
+        
         new_move = self.t_move_queue[0][0]
         #print self.t_move_queue[0][0]
         

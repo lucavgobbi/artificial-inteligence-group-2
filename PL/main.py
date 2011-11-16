@@ -32,7 +32,7 @@ class Main:
         # areas 'sujas' da tela que devem ser atualizadas
         self.rectlist = []
 
-        self.max_update_value = 12
+        self.max_update_value = 36
         self.update_timer = self.max_update_value
         self.update_counter = 0
         self.rise_value = 3        
@@ -203,8 +203,7 @@ class Main:
                         #print self.cpu.raw_move_queue[0]
 
                     elif event.key == pygame.K_SPACE:
-                        self.update_timer += 75
-                        self.rise_value = 7
+                        self.update_timer = 0
 
                     elif event.key == pygame.K_p:
                         if self.blox.stop_update != 0:
