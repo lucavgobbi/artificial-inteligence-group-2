@@ -92,7 +92,7 @@ class Blockbox(pygame.sprite.Sprite):
 
             btype = random.randint(1,5)
             if k >= 2:
-                if btype == self.block_config[0][k-1] == self.block_config[0][k-2]:
+                if btype == new_number_line[k-1] == new_number_line[k-2]:
                     btype = (btype % 5) + 1
                     
             if btype == self.block_config[0][k] == self.block_config[1][k]:
@@ -246,6 +246,7 @@ class Blockbox(pygame.sprite.Sprite):
         # Se tiver terminado de trocar dois blocos de lugar, troca eles de lugar nas
         # determinadas matrizes
         else:
+            #print pos_y, pos_x
             
             # Troca os valores no bloco. Primeiro da esquerda depois da direita
             block_left.col += 1
