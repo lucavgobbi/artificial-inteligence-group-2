@@ -4,7 +4,7 @@ from move import *
 import copy
 
 #Tree building
-def buildMoves(m):
+def buildMoves(m, hashTabu):
     moves = []
     p = 0
     for r in range (0, 12):
@@ -14,21 +14,23 @@ def buildMoves(m):
                 aux = mt[r][c]
                 mt[r][c] = mt[r][c+1]
                 mt[r][c+1] = aux
-                p = analize(mt)
-                move = Move(p, r, c, mt)
-                moves.append(move)
+                if(checkHash(mt, hashTabu)):
+                    p = analize(mt)
+                    move = Move(p, r, c, mt)
+                    moves.append(move)
     return moves
 
 def buildTree(m):
-    moves = buildMoves(m)
-    fillNodes(moves, 1)
+    hashTabu = dict()
+    moves = buildMoves(m, hashTabu)
+    fillNodes(moves, 1, hashTabu)
     return moves
     
-def fillNodes(moves, h):
+def fillNodes(moves, h, hashTabu):
         for move in moves:
-            move.addChild(buildMoves(move.m))
+            move.addChild(buildMoves(move.m, hashTabu))
             if(h > 0):
-                fillNodes(move.child, h-1)
+                fillNodes(move.child, h-1, hashTabu)
 
 #End of Tree building
 
@@ -42,7 +44,6 @@ def maxPath(moves):
     max = updateMoves(move)
     bestMoves = []
     findMax(move.child, bestMoves)
-    printMoves(bestMoves)
     return bestMoves
         
 def updateMoves(move):
@@ -65,3 +66,34 @@ def findMax(moves, bestMoves):
     bestMoves.append(maxMove)
     if(maxMove.child != None):
         findMax(maxMove.child, bestMoves)
+
+#End of Path finding
+
+#Hashing
+
+def makeImage(m):
+    newHash = ""
+    value = str(m[0][0])
+    valuesToHash = dict()
+    valuesToHash[value] = "0"
+    newHashValue = 0
+    for y in range(0,12):
+        for x in range(0,6):
+            value = str(m[y][x])
+            if(value in valuesToHash):
+                newHash += valuesToHash[value]
+            else:
+                newHashValue += 1
+                valuesToHash[value] = str(newHashValue)
+                newHash += valuesToHash[value]
+    return newHash
+
+def checkHash(m, myhash):
+    hashItem = makeImage(m)
+    if(hashItem in myhash):
+        return False
+    else:
+        myhash[hashItem] = 0
+    return True
+
+#End of Hashing
