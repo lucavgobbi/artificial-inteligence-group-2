@@ -18,8 +18,8 @@ class Main:
         p = analize(m)
         printMatrix(m)
         tree = buildTree(m)
-        maxPath(tree)
-#printMoves(a)
+        
+        printMoves(maxPath(tree))
 
 def printMoves(m):
     for i in m:
