@@ -23,8 +23,7 @@ class Cpu:
         self.move_timer = 10
 
     def call_ia(self):
-        moves = buildTree(self.blockbox.block_config)
-        best = maxPath(moves)
+        best = IA(self.blockbox.block_config)
         l = []
         
         for m in best:
