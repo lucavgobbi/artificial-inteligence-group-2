@@ -3,6 +3,20 @@ from vteste import *
 from move import *
 import copy
 
+#IA Decision
+def IA(originalM):
+    steps = 4
+    tree = buildTree(originalM, steps)
+    path = maxPath(tree)
+    while(path[0].p > 0):
+        for step in path:
+            printMove(step)
+            printMatrix(step.m)
+        tree = buildTree(path[steps-1].m, steps)
+        path = maxPath(tree)
+
+#End of IA Decision
+
 #Tree building
 def buildMoves(m, hashTabu):
     moves = []
@@ -20,10 +34,10 @@ def buildMoves(m, hashTabu):
                     moves.append(move)
     return moves
 
-def buildTree(m):
+def buildTree(m, h):
     hashTabu = dict()
     moves = buildMoves(m, hashTabu)
-    fillNodes(moves, 1, hashTabu)
+    fillNodes(moves, h-2, hashTabu)
     return moves
     
 def fillNodes(moves, h, hashTabu):
