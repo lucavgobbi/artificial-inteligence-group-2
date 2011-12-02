@@ -1,33 +1,34 @@
 #! /usr/bin/env python
 
-import os, sys
+import sys
 import pygame
 import random
 from pygame.locals import *
 from blockbox import Blockbox
-from cursor import Choice_cursor
 from cpu import Cpu
 from adds import *
 from chron import chronometer
 
-if not pygame.font: print "Warning: Fonts nao disponivel"
-if not pygame.mixer: print "Warning: Mixer nao disponivel"
+if not pygame.font: 
+    print "Warning: Fonts nao disponivel"
+if not pygame.mixer: 
+    print "Warning: Mixer nao disponivel"
 
 # Cuida dos aspectos principais do jogo
 class Main:
 
     # Inicializa classe main
-    def __init__(self, w = 640, h = 480):
+    def __init__(self, width = 640, height = 480):
         # Inicializa pygame
         pygame.init()
         
         # largura e altura da tela
-        self.width = w
-        self.height = h
+        self.width = width
+        self.height = height
         
         # Seta o seguramento de teclas. Quando uma tecla e pressionada e segurada, da o efeito
         # de aperta-la diversas vezes
-        pygame.key.set_repeat(60,60)
+        pygame.key.set_repeat(60, 60)
                
         # areas 'sujas' da tela que devem ser atualizadas
         self.rectlist = []
@@ -40,7 +41,7 @@ class Main:
         self.stop_update = True
 
         # Inicializa janela principal com os tamanhos dados
-        self.screen = pygame.display.set_mode((self.width, self.height),pygame.DOUBLEBUF, 32)
+        self.screen = pygame.display.set_mode((self.width, self.height), pygame.DOUBLEBUF, 32)
         
         # Inicializa o clock
         self.clock = pygame.time.Clock()
@@ -52,8 +53,8 @@ class Main:
         
         # cria um background e anexa a tela
         self.background = pygame.Surface((self.width, self.height)).convert()
-        self.background.fill((0,0,0))
-        self.screen.blit(self.background, (0,0))
+        self.background.fill((0, 0, 0))
+        self.screen.blit(self.background, (0, 0))
     
         self.bb_list = []
         
@@ -199,7 +200,7 @@ class Main:
                         print "Tempo Execucao medio"
                         print "{0:5f}".format(self.frame_counter/self.frame_number)
                         print "Numero de blocos no grupo"
-                        print "{0:d}".format(len(Blockbox.block_group))
+                        print "{0:d}".format(len(self.blox.block_group))
                     
                     elif event.key == pygame.K_q:
                         running = 0
@@ -243,13 +244,13 @@ class Main:
             
             for blockbox in self.bb_list:
                 if not blockbox.fail:
-                   self.change(blockbox)
-                   self.fall(blockbox)
-                   self.clear(blockbox)
-                   if blockbox.stop_update == 0:
-                       self.update_blockbox(blockbox)
+                    self.change(blockbox)
+                    self.fall(blockbox)
+                    self.clear(blockbox)
+                    if blockbox.stop_update == 0:
+                        self.update_blockbox(blockbox)
                        
-                   elif blockbox.stop_update > 0: blockbox.stop_update -= 1
+                    elif blockbox.stop_update > 0: blockbox.stop_update -= 1
                 else:
                     blockbox.failure()
             
@@ -284,7 +285,7 @@ class Main:
 
             # Jogo rodando em 60fps
             self.frame_number += 1
-            self.frame_counter += self.clock.tick(30)
+            self.frame_counter += self.clock.tick()
             
             
     """   METODOS PARA TESTES   """
@@ -293,20 +294,20 @@ class Main:
         if self.p_flag:
             self.p_counter += 1
             if self.p_counter == 1:
-                 self.blox.changing_blocks.append([self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y])
+                self.blox.changing_blocks.append([self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y])
             if self.p_counter == 4:
-                 self.blox.changing_blocks.append([self.blox.cursor.pos_rel_x+1, self.blox.cursor.pos_rel_y])
-                 self.p_counter = 0
-                 self.p_flag = False
+                self.blox.changing_blocks.append([self.blox.cursor.pos_rel_x+1, self.blox.cursor.pos_rel_y])
+                self.p_counter = 0
+                self.p_flag = False
                  
     
     def k_count(self):
         if self.k_flag:
             self.k_counter += 1
             if self.k_counter == 1:
-                 self.blox.changing_blocks.append([self.blox.cursor.pos_rel_x-1, self.blox.cursor.pos_rel_y-1])
-                 self.k_counter = 0
-                 self.k_flag = False
+                self.blox.changing_blocks.append([self.blox.cursor.pos_rel_x-1, self.blox.cursor.pos_rel_y-1])
+                self.k_counter = 0
+                self.k_flag = False
                  
     # TESTE: Gera diversos movimentos aleatorios em espacos de frames pequeno para testar colisoes
     # entre operacoes

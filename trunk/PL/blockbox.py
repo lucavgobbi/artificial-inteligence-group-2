@@ -287,8 +287,11 @@ class Blockbox(pygame.sprite.Sprite):
  
             return
     
-    # Checa se um bloco deve cair, e se sim, quantas posicoes
+    
     def check_fall(self, (pos_x, pos_y), chain=0):
+    """
+    # Checa se um bloco deve cair, e se sim, quantas posicoes
+    """
 
         # Se o bloco for ativo, checa se ele proprio deve cair
         if self.block_matrix[pos_y][pos_x].isActive:
@@ -316,12 +319,14 @@ class Blockbox(pygame.sprite.Sprite):
             
         return
         
+    def block_fall(self, block_set):
+    """
     # Cuida da queda de blocos. Recebe um grupo de blocos que deve cair. A logica e que temos um bloco
     # mestre no grupo, que e o primeiro da lista, ou seja o bloco na linha de menor numero. Ele sempre
     # olha o bloco abaixo de si. Caso ess seja inativo, troca uma posicao para baixo sua e de todos os
     # outros blocos da lista. Caso nao, para de cair
-    def block_fall(self, block_set):
-        
+    """
+    
         pos_x, pos_y = block_set[0]
         changing = self.block_matrix[pos_y-1][pos_x].isChanging
         for block in block_set:
@@ -391,10 +396,13 @@ class Blockbox(pygame.sprite.Sprite):
                 return True
 
             
+    def check_clear(self, block_set):
+    """
     ## Checa em um determinado grupo de blocos se ha blocos que devem ser eliminados
     ## olhando os vizinhos desses blocos
     #  @param block_set: grupo de blocos testado
-    def check_clear(self, block_set):
+    """
+    
         added = 0
         clear = []
         for block in block_set:
@@ -431,12 +439,14 @@ class Blockbox(pygame.sprite.Sprite):
         else:
             return False
 
+    def check_clear_down(self, (pos_x, pos_y), clear, total):
+    """
     ## Auxiliar de eliminacao. Checa se o blocos abaixo de determinando bloco sao iguais a ele
     ## Retorna o numero de blocos adicionados a lista parcial
     #  @param [pos_x, pos_y]: coordenadas do bloco na matriz
     #  @param clear: lista de eliminacao parcial a que pertencera o bloco
-    #  @param total: lista total de eliminacao gerada ate o momento 
-    def check_clear_down(self, (pos_x, pos_y), clear, total):
+    #  @param total: lista total de eliminacao gerada ate o momento
+    """
         
         c = 0
             
@@ -451,12 +461,16 @@ class Blockbox(pygame.sprite.Sprite):
                     c += 1
         return c
                 
+
+    def check_clear_up(self, (pos_x, pos_y), clear, total):
+    """
     ## Auxiliar de eliminacao. Checa se o blocos acima de determinando bloco sao iguais a ele
     ## Retorna o numero de blocos adicionados a lista parcial
     #  @param [pos_x, pos_y]: coordenadas do bloco testado na matriz
     #  @param clear: lista de eliminacao parcial a que pertencera o bloco
-    #  @param total: lista total de eliminacao gerada ate o momento 
-    def check_clear_up(self, (pos_x, pos_y), clear, total):
+    #  @param total: lista total de eliminacao gerada ate o momento
+    """
+    
         c = 0
             
         if self.look_up([pos_x, pos_y]):
@@ -470,12 +484,15 @@ class Blockbox(pygame.sprite.Sprite):
                     c += 1
         return c
         
+        
+    def check_clear_left(self, (pos_x, pos_y), clear, total):
+    """
     ## Auxiliar de eliminacao. Checa se o blocos a esquerda de determinando bloco sao iguais a ele
     ## Retorna o numero de blocos adicionados a lista parcial
     #  @param [pos_x, pos_y]: coordenadas do bloco testado na matriz
     #  @param clear: lista de eliminacao parcial a que pertencera o bloco
-    #  @param total: lista total de eliminacao gerada ate o momento 
-    def check_clear_left(self, (pos_x, pos_y), clear, total):
+    #  @param total: lista total de eliminacao gerada ate o momento
+    """
         c = 0
             
         if self.look_left([pos_x, pos_y]):
@@ -489,12 +506,15 @@ class Blockbox(pygame.sprite.Sprite):
                     c += 1
         return c
         
-    ## Auxiliar de eliminacao. Checa se o blocos a direita de determinando bloco sao iguais a ele
-    ## Retorna o numero de blocos adicionados a lista parcial
+
+    def check_clear_right(self, (pos_x, pos_y), clear, total):
+    """
+    ##Auxiliar de eliminacao. Checa se o blocos a direita de determinando bloco sao iguais a ele
+    ##Retorna o numero de blocos adicionados a lista parcial
     #  @param [pos_x, pos_y]: coordenadas do bloco testado na matriz
     #  @param clear: lista de eliminacao parcial a que pertencera o bloco
-    #  @param total: lista total de eliminacao gerada ate o momento 
-    def check_clear_right(self, (pos_x, pos_y), clear, total):
+    #  @param total: lista total de eliminacao gerada ate o momento
+    """      
         c = 0
             
         if self.look_right([pos_x, pos_y]):
@@ -509,10 +529,12 @@ class Blockbox(pygame.sprite.Sprite):
         return c
 
 
-    ## Elimina os blocos da tela. Responsavel pela animacao de eliminacao, remocao do bloco da tela,
-    ## limpeza de seus atributos e contagem de pontos.
-    #  @param block_set: conjunto de blocos que deve ser eliminado simultaneamente
     def block_clear(self, block_set):
+       """
+       ## Elimina os blocos da tela. Responsavel pela animacao de eliminacao, remocao do bloco da tela,
+       ## limpeza de seus atributos e contagem de pontos.
+       #  @param block_set: conjunto de blocos que deve ser eliminado simultaneamente    
+       """
         pos_x, pos_y = block_set[0]
         
         if self.block_matrix[pos_y][pos_x].blinking == self.block_matrix[pos_y][pos_x].max_blinking_value:
