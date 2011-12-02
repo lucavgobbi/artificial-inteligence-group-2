@@ -2,6 +2,7 @@ from validate import *
 from ia import *
 import sys
 import pygame
+import threading
 
 class Main:
     
@@ -21,10 +22,14 @@ class Main:
             
         p = analize(m)
         printMatrix(m)
-        IA(m)
+        #IA(m)
         #tree = buildTree(m,3)
-        
         #printMoves(maxPath(tree))
+        ia = IaThread(m);
+        ia.start();
+        while ia.isAlive():
+            print "executando"
+        print ia.path
 
 def printMoves(m):
     for i in m:
