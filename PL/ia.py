@@ -5,7 +5,7 @@ import copy
 
 #IA Decision
 def IA(originalM):
-    steps = 4
+    steps = 3
     tree = buildTree(originalM, steps)
     path = maxPath(tree)
     while(path[0].p > 0):

@@ -1,5 +1,7 @@
 from validate import *
 from ia import *
+import sys
+import pygame
 
 class Main:
     
@@ -63,5 +65,21 @@ def printMatrix(m):
 
 if __name__ == "__main__":
     # Inicializa objeto main e entra no loop principal
-    k = [[1,0,0,1,1,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
-    main_window = Main(k)
+    m = [[1,0,0,1,1,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
+    
+    if len(sys.argv) > 1:
+        f = open(name, 'r')
+        m = []
+        
+        for i in range(11, -1, -1):
+            line = f.readline().strip(" \n").split()
+            number_row = []
+            for k in range(0, 6):
+                btype = int(line[k])
+                number_row.append(btype)
+            
+            m.insert(0, number_row)
+    
+    clock = pygame.time.Clock()
+    main_window = Main(m)
+    print "TEMPO: " + str(clock.tick())
