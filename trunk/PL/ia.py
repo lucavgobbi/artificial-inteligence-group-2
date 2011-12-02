@@ -27,7 +27,7 @@ def IA(originalM):
             printMatrix(step.m)
         tree = buildTree(path[steps-1].m, steps)
         path = maxPath(tree)
-
+    return path
 #End of IA Decision
 
 #Tree building

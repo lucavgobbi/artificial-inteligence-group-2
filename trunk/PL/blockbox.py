@@ -18,7 +18,7 @@ class Blockbox(pygame.sprite.Sprite):
     score_group = pygame.sprite.RenderUpdates()
     
     # Inicializacao
-    def __init__(self, w, h, pos_x, pos_y, screen, transp=128):
+    def __init__(self, w, h, pos_x, pos_y, screen, cpu, transp=128):
 
         # Inicia a classe Sprite
         pygame.sprite.Sprite.__init__(self)
@@ -84,6 +84,8 @@ class Blockbox(pygame.sprite.Sprite):
                     
         self.score = Score(self.rect, 0)
         Blockbox.score_group.add(self.score)
+        
+        self.cpu = cpu
 
     def update_blocks(self):
         new_block_line = []
@@ -147,7 +149,7 @@ class Blockbox(pygame.sprite.Sprite):
         self.block_config.append([])
         # Altura da tela
         #self.max_height = random.randint(2,5)
-        self.max_height = 8
+        self.max_height = 5
         
         # Loop especifico para a primeira linha. Nunca adiciona bloco vazio
         for k in range(0,6):
