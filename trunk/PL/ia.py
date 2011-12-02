@@ -1,7 +1,20 @@
 from validate import *
 from vteste import *
 from move import *
+import random
 import copy
+import threading
+
+class IaThread (threading.Thread ):
+    def __init__ (self, m):
+        self.matrix = m;
+        threading.Thread.__init__ (self)
+        
+    def run (self):
+        steps = 3
+        tree = buildTree(self.matrix, steps)
+        self.path = maxPath(tree)
+
 
 #IA Decision
 def IA(originalM):
@@ -47,6 +60,12 @@ def fillNodes(moves, h, hashTabu):
                 fillNodes(move.child, h-1, hashTabu)
 
 #End of Tree building
+
+#Heuristics
+
+
+
+#End of Heuristics
 
 #Path finding
 
