@@ -160,6 +160,7 @@ class Main:
         q = 0
         
         self.load_sprites()
+        Start = False
  
         while running:
             for event in pygame.event.get():
@@ -206,10 +207,12 @@ class Main:
                         running = 0
 
                     elif event.key == pygame.K_l:
-                        #break
-                        self.cpu.raw_move_queue = [[0,1], [1,2], [1,3], [3,3], [5,6]]
-                        self.cpu.transform_movements()
-                        print self.cpu.raw_move_queue[0]
+                        if not Start:
+                            Start = True
+                        else:
+                            Start = False
+                            self.cpu.t_move_queue = []
+                            self.cpu.raw_move_queue = []
 
                     elif event.key == pygame.K_SPACE:
                         self.blox.update_timer = 0
@@ -238,7 +241,10 @@ class Main:
             self.k_count()
             
             self.r_count()
-            
+            if Start: self.cpu.gen_random_movements()
+            if self.cpu.raw_move_queue != []:
+                self.cpu.transform_movements()    
+                
             if self.cpu.t_move_queue != []:
                 self.cpu.execute_cpu_movements()
             

@@ -32,11 +32,39 @@ class Cpu:
         self.raw_move_queue = l
         self.transform_movements()
 
+    def gen_random_movements(self):
+        
+        if len(self.t_move_queue) < 8:
+        
+            if self.blockbox.fail: return
+            number = random.randint(3, 6)
+            moves = []
+        
+            for i in range(0, number):
+                
+                x = random.randint(0, 5)
+                y = random.randint(0, 11)
+                
+                try: 
+                    if self.blockbox.block_config[y][x] != 0:
+                        moves.append([x,y])
+                except IndexError:
+                    print "X Y"
+                    print y, x
+                    print "CONFIGURACAO"
+                    print self.blockbox.block_config
+                    print "BLOCOS"
+                    self.blockbox.print_block_matrix()
+                    break
+            
+            if moves != []: self.raw_move_queue.append(moves)
+
     def transform_movements(self):
-        size = len(self.raw_move_queue)
+        moves_to_transform = self.raw_move_queue.pop(0)
+        size = len(moves_to_transform)
         move_list = []
         
-        move = self.raw_move_queue[0]
+        move = moves_to_transform[0]
         
         pos_x, pos_y = self.cursor_final_position
         
@@ -62,8 +90,8 @@ class Cpu:
 
 
         for i in range(0, size-1):
-            move = self.raw_move_queue[i]
-            next_move = self.raw_move_queue[i+1]
+            move = moves_to_transform[i]
+            next_move = moves_to_transform[i+1]
             
             hor = next_move[0] - move[0]
             ver = next_move[1] - move[1]
@@ -85,7 +113,7 @@ class Cpu:
             move_list.append(["change"])
         
         self.t_move_queue.append(move_list)
-        self.cursor_final_position = self.raw_move_queue[-1]
+        self.cursor_final_position = moves_to_transform[-1]
         
 
     def execute_cpu_movements(self):
