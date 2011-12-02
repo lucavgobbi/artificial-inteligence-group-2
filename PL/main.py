@@ -7,6 +7,7 @@ from pygame.locals import *
 from blockbox import Blockbox
 from cpu import Cpu
 from adds import *
+import copy
 from chron import chronometer
 
 if not pygame.font: 
@@ -81,7 +82,7 @@ class Main:
     def load_sprites(self):
     
         # objetos principais da tela. Blox e o quadro que contem os blocos.
-        self.blox = Blockbox(152, 262, 100, 150, self.screen)
+        self.blox = Blockbox(152, 262, 100, 150, self.screen, False)
         self.cpu = Cpu((152, 262, 388, 150), self.screen)
         
         # Grupo de sprites unico para o cursor e para a caixa de blocos.
@@ -93,13 +94,15 @@ class Main:
 
         if len(sys.argv) > 1:
             self.blox.file_initiate_blocks(sys.argv[1])
-            self.cpu.blockbox.initiate_blocks()
+            self.cpu.blockbox.file_initiate_blocks(sys.argv[1])
         else:
             self.blox.initiate_blocks()
             self.cpu.blockbox.initiate_blocks()
 
         self.bb_list.append(self.blox)
         self.bb_list.append(self.cpu.blockbox)
+        self.cpu.last_m = copy.deepcopy(self.cpu.blockbox.block_config)
+        self.cpu.init_ia()
 
     # Chama a funcao de checagem de queda para os blocos necessarios
     def fall(self, bb):
@@ -145,6 +148,9 @@ class Main:
             if bb.update_counter == 7:
                 bb.update_counter = 0
                 bb.update_blocks()
+                if bb.cpu:
+                    self.cpu.init_ia()
+                    print "passa"
                 
         bb.rise_value = 3
 
@@ -226,9 +232,10 @@ class Main:
                             self.cpu.blockbox.stop_update = -1
 
                     elif event.key == pygame.K_r:
-                        if self.r_flag == False:
+                        self.cpu.call_ia()
+                        """if self.r_flag == False:
                             self.r_flag = True
-                            self.r_limit = random.randint(100, 200)
+                            self.r_limit = random.randint(100, 200)"""
 
                     elif event.key == pygame.K_k:
                         if self.k_flag == False:
@@ -241,9 +248,10 @@ class Main:
             self.k_count()
             
             self.r_count()
-            if Start: self.cpu.gen_random_movements()
-            if self.cpu.raw_move_queue != []:
-                self.cpu.transform_movements()    
+            #self.cpu.call_ia2()
+            #if Start: self.cpu.gen_random_movements()
+            #if self.cpu.raw_move_queue != []:
+                #self.cpu.transform_movements()    
                 
             if self.cpu.t_move_queue != []:
                 self.cpu.execute_cpu_movements()
@@ -253,10 +261,10 @@ class Main:
                     self.change(blockbox)
                     self.fall(blockbox)
                     self.clear(blockbox)
-                    if blockbox.stop_update == 0:
+                    """if blockbox.stop_update == 0:
                         self.update_blockbox(blockbox)
                        
-                    elif blockbox.stop_update > 0: blockbox.stop_update -= 1
+                    elif blockbox.stop_update > 0: blockbox.stop_update -= 1"""
                 else:
                     blockbox.failure()
             

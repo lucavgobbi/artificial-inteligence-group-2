@@ -8,30 +8,78 @@ from adds import *
 from ia import *
 from move import *
 from vteste import *
+import threading
+import copy
+from pprint import pprint
 
 class Cpu:
     
     def __init__(self, pos_size, surf):
         
-        self.blockbox = Blockbox(pos_size[0], pos_size[1], pos_size[2], pos_size[3], surf)
+        self.blockbox = Blockbox(pos_size[0], pos_size[1], pos_size[2], pos_size[3], surf, True)
         
         self.raw_move_queue = []        
         self.t_move_queue = []
         
         self.cursor_final_position = [2,10]
         
-        self.move_timer = 10
+        self.max_move_timer = 5
+        self.move_timer = self.max_move_timer
+        
+        self.ia = None
+        
+        self.stop_ia = False
+        
+        self.last_m = []
 
     def call_ia(self):
-        best = IA(self.blockbox.block_config)
+        tree = buildTree(self.last_m, 3)
+        best = maxPath(tree)
         l = []
+        print best
         
         for m in best:
             l.append([m.c, m.r])
             
-        self.raw_move_queue = l
+        print "$$$$$$$$$$$$$$$$$$$$"
+        printMatrix(best[-1].m)
+        print "$$$$$$$$$$$$$$$$$$$$"
+        self.last_m = copy.deepcopy(best[-1].m)
+        self.raw_move_queue.append(l)
         self.transform_movements()
 
+    def init_ia(self):
+        #return
+        self.ia = IaThread(self.blockbox.block_config)
+        self.ia.start()
+        self.raw_move_queue = []        
+        self.t_move_queue = []
+        self.stop_ia = False
+
+    def call_ia2(self):
+        l = []
+        
+        if self.ia.isAlive() or self.stop_ia:
+            return
+        else:
+            for move in self.ia.path:
+                l.append([move.c, move.r])
+                #print move.c, move.r
+            
+            end_matrix = copy.deepcopy(self.ia.path[-1].m)
+            if end_matrix != []:
+                print "$$$$$$$$$$$$$$$$$$$$"
+                printMatrix(end_matrix)
+                print "$$$$$$$$$$$$$$$$$$$$"
+                self.ia = None
+                self.ia = IaThread(end_matrix)
+                self.ia.start()
+            else:
+                self.stop_ia = True
+            self.raw_move_queue.append(l)
+            self.transform_movements()
+            #self.stop_ia = True
+        
     def gen_random_movements(self):
         
         if len(self.t_move_queue) < 8:
@@ -129,15 +177,19 @@ class Cpu:
             if self.move_timer > 0:
                 self.move_timer -= 1
                 return
-            self.move_timer = 5
+            if self.blockbox.cleared_blocks != [] or self.blockbox.falling_blocks != []:
+                self.move_timer += 4
+                return
+            self.move_timer = self.max_move_timer
             self.blockbox.changing_blocks.append([self.blockbox.cursor.pos_rel_x, self.blockbox.cursor.pos_rel_y])
             self.t_move_queue[0].pop(0)
+            #print [self.blockbox.cursor.pos_rel_x, self.blockbox.cursor.pos_rel_y]
             
         elif new_move[0] == "left":
             if self.move_timer > 0:
                 self.move_timer -= 1
                 return
-            self.move_timer = 10
+            self.move_timer = self.max_move_timer
             self.blockbox.cursor.move_cursor_LEFT(self.blockbox.rect)
             new_move[1] += 1
             if new_move[1] == 0:
@@ -147,7 +199,7 @@ class Cpu:
             if self.move_timer > 0:
                 self.move_timer -= 1
                 return
-            self.move_timer = 10
+            self.move_timer = self.max_move_timer
             self.blockbox.cursor.move_cursor_RIGHT(self.blockbox.rect)
             new_move[1] -= 1
             if new_move[1] == 0:
@@ -157,7 +209,7 @@ class Cpu:
             if self.move_timer > 0:
                 self.move_timer -= 1
                 return
-            self.move_timer = 10
+            self.move_timer = self.max_move_timer
             self.blockbox.cursor.move_cursor_UP(self.blockbox.rect)
             new_move[1] -= 1
             if new_move[1] == 0:
@@ -167,11 +219,14 @@ class Cpu:
             if self.move_timer > 0:
                 self.move_timer -= 1
                 return
-            self.move_timer = 10
+            self.move_timer = self.max_move_timer
             self.blockbox.cursor.move_cursor_DOWN(self.blockbox.rect)
             new_move[1] += 1
             if new_move[1] == 0:
                 self.t_move_queue[0].pop(0)
-                
+        elif new_move[0] > 0:
+            new_move[0] -= 1
+        else: self.t_move_queue[0].pop(0)
+        
         if self.t_move_queue[0] == []:
             self.t_move_queue.pop(0)

@@ -18,7 +18,7 @@ class Main:
         
         m5 = [[1,1,2,1,2,2],[0,0,1,1,3,2],[5,5,2,3,3,5],[0,4,3,3,1,1],[0,4,0,2,0,5],[0,0,0,3,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
 
-        m = m5
+        m = mrec
             
         p = analize(m)
         printMatrix(m)
@@ -28,8 +28,13 @@ class Main:
         ia = IaThread(m);
         ia.start();
         while ia.isAlive():
-            print "executando"
-        print ia.path
+            aux = 1
+            
+        for move in ia.path:
+            print move.c, move.r
+            printMatrix(move.m)
+            print "$$$$$$$$$$"
+        
 
 def printMoves(m):
     for i in m:
@@ -73,7 +78,7 @@ if __name__ == "__main__":
     m = [[1,0,0,1,1,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
     
     if len(sys.argv) > 1:
-        f = open(name, 'r')
+        f = open(sys.argv[1], 'r')
         m = []
         
         for i in range(11, -1, -1):
