@@ -5,7 +5,7 @@ import random
 import copy
 import threading
 
-class IaThread (threading.Thread ):
+class IaThread (threading.Thread):
     def __init__ (self, m):
         self.matrix = m;
         threading.Thread.__init__ (self)
