@@ -71,9 +71,10 @@ def analize(m):
         killnow = analCols(m) + analLines(m)
         if(killnow > 0):
             kill += killnow
-            while(fall(m)): pass
         else:
             repeat = False
+        while(fall(m)):
+            repeat = True
     return kill
 
 def printMatrix(m):
