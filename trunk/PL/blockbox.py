@@ -9,10 +9,10 @@ from score import Score
 # Caixa que contem os blocos
 class Blockbox(pygame.sprite.Sprite):
     # cria um grupo de sprites para os blocos
-    block_group = pygame.sprite.RenderUpdates()
+    #block_group = pygame.sprite.RenderUpdates()
     
     # cria um grupo de sprites para os cursores
-    cursor_group = pygame.sprite.RenderUpdates()
+    #cursor_group = pygame.sprite.RenderUpdates()
     
     # cria um grupo de sprites para os scores
     score_group = pygame.sprite.RenderUpdates()
@@ -28,6 +28,9 @@ class Blockbox(pygame.sprite.Sprite):
         
         self.pos_x = pos_x
         self.pos_y = pos_y
+        
+        self.block_group = pygame.sprite.RenderUpdates()
+        self.cursor_group = pygame.sprite.RenderUpdates()
         
         self.frame_counter = 0
 
@@ -57,6 +60,10 @@ class Blockbox(pygame.sprite.Sprite):
         # Matriz que representa abstracao da configuracao de blocos atual da tela
         self.block_config = []
 
+        self.max_update_value = 36
+        self.update_timer = self.max_update_value
+        self.update_counter = 0
+
         # Contador de stop. Se -1, tela parada (para testes), 0 blocos sao adicionados, maior que 0 tempo de pausa em decorrencia
         # da eliminacao de blocos
         self.stop_update = -1
@@ -73,7 +80,7 @@ class Blockbox(pygame.sprite.Sprite):
         
         # inicia um cursor
         self.cursor = Choice_cursor(self.rect, 22, 21)
-        Blockbox.cursor_group.add(self.cursor)
+        self.cursor_group.add(self.cursor)
                     
         self.score = Score(self.rect, 0)
         Blockbox.score_group.add(self.score)
@@ -102,7 +109,7 @@ class Blockbox(pygame.sprite.Sprite):
             b = Block((self.rect.left, self.rect.top, k, 0), 22, 21, btype)
             new_block_line.append(b)
             new_number_line.append(b.block_type)
-            Blockbox.block_group.add(b)
+            self.block_group.add(b)
             
         self.block_matrix.insert(0, new_block_line)
         self.block_config.insert(0, new_number_line)
@@ -112,7 +119,7 @@ class Blockbox(pygame.sprite.Sprite):
         for block in last_block_line:
             if block.block_type != 0:
                 fail = True
-                Blockbox.block_group.remove(block)
+                self.block_group.remove(block)
         if fail:
             self.failure()
             self.stop_update = -1
@@ -159,7 +166,7 @@ class Blockbox(pygame.sprite.Sprite):
             self.block_config[0].append(b.block_type)
             
             # Adiciona o novo bloco criado ao grupo de sprites dos blocos e seta sua posicao
-            Blockbox.block_group.add(b)
+            self.block_group.add(b)
 
 
 
@@ -193,7 +200,7 @@ class Blockbox(pygame.sprite.Sprite):
                 self.block_config[i].append(b.block_type)
                     
                 # Adiciona o novo bloco criado ao grupo de sprites dos blocos e seta sua posicao
-                if(b.block_type != 0): Blockbox.block_group.add(b)
+                if(b.block_type != 0): self.block_group.add(b)
 
 
         for i in range(self.max_height, 12):
@@ -281,7 +288,7 @@ class Blockbox(pygame.sprite.Sprite):
             return
     
     # Checa se um bloco deve cair, e se sim, quantas posicoes
-    def check_fall(self, (pos_x, pos_y)):
+    def check_fall(self, (pos_x, pos_y), chain=0):
 
         # Se o bloco for ativo, checa se ele proprio deve cair
         if self.block_matrix[pos_y][pos_x].isActive:
@@ -299,9 +306,10 @@ class Blockbox(pygame.sprite.Sprite):
                 if self.block_matrix[k][pos_x].isClearing or self.block_matrix[k][pos_x].isChanging:
                     return
                 bl = []
-                while k < 12 and self.block_matrix[k][pos_x].isActive:
+                while k < 12 and self.block_matrix[k][pos_x].isActive and not self.block_matrix[k][pos_x].isClearing:
                     bl.append([pos_x, k])
                     self.block_matrix[k][pos_x].isFalling = True
+                    self.block_matrix[k][pos_x].chain_number = chain
                     self.block_matrix[k][pos_x].fall_timer = self.univ_fall_timer
                     k+=1
                 if bl != []: self.falling_blocks.insert(0, bl)
@@ -501,8 +509,8 @@ class Blockbox(pygame.sprite.Sprite):
         return c
 
 
-    ## Elimina os blocos da tela. Responsavel pela animacao de eliminacao, remocao do bloco da tela
-    ## e limpeza de seus atributos.
+    ## Elimina os blocos da tela. Responsavel pela animacao de eliminacao, remocao do bloco da tela,
+    ## limpeza de seus atributos e contagem de pontos.
     #  @param block_set: conjunto de blocos que deve ser eliminado simultaneamente
     def block_clear(self, block_set):
         pos_x, pos_y = block_set[0]
@@ -515,17 +523,20 @@ class Blockbox(pygame.sprite.Sprite):
             self.block_matrix[pos_y][pos_x].block_blinking()
             
         if self.block_matrix[pos_y][pos_x].blinking == 0:
-            number = len(block_set)            
-            self.score.increase_score(number, 0)
+            number = len(block_set)
+            chain = 0
             
             for block in block_set:
                 pos_x, pos_y = block
+                if self.block_matrix[pos_y][pos_x].chain_number > chain:
+                    chain = self.block_matrix[pos_y][pos_x].chain_number
                 self.block_matrix[pos_y][pos_x].clear()
                 self.block_config[pos_y][pos_x] = 0
-                Blockbox.block_group.remove(self.block_matrix[pos_y][pos_x])
-                self.check_fall(block)
+                self.block_group.remove(self.block_matrix[pos_y][pos_x])         
+                self.check_fall(block, chain+1)
             #print "BLOCK_SET\n\n", block_set, "\n\nBLOCK_SET"
             #print len(block_set)
+            self.score.increase_score(number, chain)
             self.cleared_blocks.remove(block_set)
             return
             
@@ -593,7 +604,7 @@ class Blockbox(pygame.sprite.Sprite):
 
             for block in line:
                 if block.block_type != 0:
-                    Blockbox.block_group.remove(block)
+                    self.block_group.remove(block)
                     block.clear()
 
         self.fail_timer -= 1
@@ -633,7 +644,7 @@ class Blockbox(pygame.sprite.Sprite):
         for i in range(11, -1, -1):
             line = line + "Linha{0:02d}:".format(i)
             for k in range(0,6):
-                line = line + " B:{0:2d}  L:{1:2d}  C:{2:2d},".format(self.block_matrix[i][k].block_type, self.block_matrix[i][k].line, self.block_matrix[i][k].col)
+                line = line + " B:{0:2d}  L:{1:2d}  C:{2:2d},".format(self.block_matrix[i][k].chain_number, self.block_matrix[i][k].line, self.block_matrix[i][k].col)
             print line
             line = ""
             
@@ -660,7 +671,7 @@ class Blockbox(pygame.sprite.Sprite):
                 btype = int(line[k])
                 
                 b = Block((self.rect.left, self.rect.top, k, i), 22, 21, btype)
-                if btype != 0: Blockbox.block_group.add(b)
+                if btype != 0: self.block_group.add(b)
             
                 block_row.append(b)
                 number_row.append(btype)

@@ -41,6 +41,9 @@ class Block(pygame.sprite.Sprite):
         # indica que o bloco esta no meio da animacao de troca
         self.isChanging = False
         
+        # indica a qual numero de chain o bloco pertence se ele estiver sendo eliminado
+        self.chain_number = 0
+        
         self.move_value = 0   
         self.update_counter = 0
         
