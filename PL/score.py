@@ -36,7 +36,8 @@ class Score(pygame.sprite.Sprite):
     #  @param number_clear: numero de blocos eliminados na chamada
     #  @param chain: numero de chain
     def increase_score(self, number_clear, chain):
-        add = 90 + (number_clear-3)*130
+        add = 90 + (number_clear-3)*130 + chain*(90 + number_clear*5)
+        #add = number_clear + chain
         self.render_score(add)
 
     def change_score(self, value):
