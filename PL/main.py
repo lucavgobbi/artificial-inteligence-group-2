@@ -17,7 +17,7 @@ if not pygame.mixer:
 
 # Cuida dos aspectos principais do jogo
 class Main:
-
+    
     # Inicializa classe main
     def __init__(self, width = 640, height = 480):
         # Inicializa pygame
@@ -30,24 +30,24 @@ class Main:
         # Seta o seguramento de teclas. Quando uma tecla e pressionada e segurada, da o efeito
         # de aperta-la diversas vezes
         pygame.key.set_repeat(60, 60)
-               
+        
         # areas 'sujas' da tela que devem ser atualizadas
         self.rectlist = []
-
+        
         self.max_update_value = 36
         self.update_timer = self.max_update_value
         self.update_counter = 0
         self.rise_value = 3        
         self.stop_update_timer = 0
         self.stop_update = True
-
+        
         # Inicializa janela principal com os tamanhos dados
         self.screen = pygame.display.set_mode((self.width, self.height), pygame.DOUBLEBUF, 32)
         
         # Inicializa o clock
         self.clock = pygame.time.Clock()
         self.clock_teste = pygame.time.Clock()
-
+        
         self.timer = chronometer(pygame.time.get_ticks(), 10, 10)
         self.timer_group = pygame.sprite.RenderUpdates()
         self.timer_group.add(self.timer)
@@ -56,7 +56,7 @@ class Main:
         self.background = pygame.Surface((self.width, self.height)).convert()
         self.background.fill((0, 0, 0))
         self.screen.blit(self.background, (0, 0))
-    
+        
         self.bb_list = []
         
         """ Variaveis de teste """
@@ -77,10 +77,10 @@ class Main:
         self.r_flag = False
         
         """ Variaveis de teste """
-
+    
     # Carrega sprites e cria grupos de sprites de inicializacao
     def load_sprites(self):
-    
+        
         # objetos principais da tela. Blox e o quadro que contem os blocos.
         self.blox = Blockbox(152, 262, 100, 150, self.screen, False)
         self.cpu = Cpu((152, 262, 388, 150), self.screen)
@@ -91,19 +91,19 @@ class Main:
         
         # Configuracao inicial de blocos
         #self.blox.initiate_blocks()
-
+        
         if len(sys.argv) > 1:
             self.blox.file_initiate_blocks(sys.argv[1])
             self.cpu.blockbox.file_initiate_blocks(sys.argv[1])
         else:
             self.blox.initiate_blocks()
             self.cpu.blockbox.initiate_blocks()
-
+        
         self.bb_list.append(self.blox)
         self.bb_list.append(self.cpu.blockbox)
         self.cpu.last_m = copy.deepcopy(self.cpu.blockbox.block_config)
         self.cpu.init_ia()
-
+    
     # Chama a funcao de checagem de queda para os blocos necessarios
     def fall(self, bb):
         clear_test = []
@@ -111,7 +111,7 @@ class Main:
         for block_set in bb.falling_blocks:
             if bb.block_fall(block_set):
                 clear_test.append(block_set)
-
+        
         if clear_test != []:
             for block_set in clear_test:
                 bb.falling_blocks.remove(block_set)
@@ -119,41 +119,41 @@ class Main:
                     for block in block_set:
                         pos_x, pos_y = block
                         bb.block_matrix[pos_y][pos_x].chain_number = 0
-                        
+    
     
     # Caso tenha sido dado o comando para mudar dois blocos de posicao, esse metodo chama o metodo
     # que muda os dois blocos na posicao desejada de lugar
     def change(self, bb):
         for block in bb.changing_blocks:
             bb.change_fin = bb.block_change(block)
-            
+    
     def clear(self, bb):
         for block_set in bb.cleared_blocks:
             bb.block_clear(block_set)
-            
+        
         if bb.cleared_blocks != []:
             self.stop_update_timer = 35 + 15*len(bb.cleared_blocks)
-       
-       
+    
+    
     def update_blockbox(self, bb):       
         if bb.update_timer >= 0:
-            bb.update_timer = 1 # mudado para =1 para não subir sozinha
-            
+            bb.update_timer = 1
+        
         else:
             bb.block_group.update(self.rise_value)
             bb.cursor_group.update(self.rise_value)
             bb.update_counter += 1
             bb.update_timer = bb.max_update_value
-        
+            
             if bb.update_counter == 7:
                 bb.update_counter = 0
                 bb.update_blocks()
                 if bb.cpu:
                     self.cpu.init_ia()
                     print "passa"
-                
+        
         bb.rise_value = 3
-
+    
     # Loop principal do programa
     def main_loop(self):
         running = 1
@@ -167,7 +167,7 @@ class Main:
         
         self.load_sprites()
         Start = False
- 
+        
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -176,26 +176,26 @@ class Main:
                     if event.key == pygame.K_UP:
                         self.last_frame = self.frame_number
                         self.blox.cursor.move_cursor_UP(self.blox.rect) # Move Cursor pra cima
-                        
+                    
                     elif event.key == pygame.K_DOWN:
                         self.last_frame = self.frame_number
                         self.blox.cursor.move_cursor_DOWN(self.blox.rect) # Move Cursor pra baixo
-                        
+                    
                     elif event.key == pygame.K_LEFT:
                         self.last_frame = self.frame_number
                         self.blox.cursor.move_cursor_LEFT(self.blox.rect) # Move Cursor pra esquerda
-                        
+                    
                     elif event.key == pygame.K_RIGHT:
                         self.last_frame = self.frame_number
                         self.blox.cursor.move_cursor_RIGHT(self.blox.rect) # Move Cursor pra direita
-                        
+                    
                     # Tecla A inicia uma mudanca de blocos. Seta a flag change_fin e grava a posicao do cursor
                     elif event.key == pygame.K_a:
                         self.last_frame = self.frame_number
                         if [self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y] not in self.blox.changing_blocks:
                             self.blox.changing_blocks.append([self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y])
-                            #self.blox_cpu.changing_blocks.append((self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y))
-            
+                    #self.blox_cpu.changing_blocks.append((self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y))
+                    
                     # Tecla para testes. imprime as matrizes de blocos
                     elif event.key == pygame.K_f:
                         print "Matriz de configuracao de blocos"
@@ -212,7 +212,7 @@ class Main:
                     elif event.key == pygame.K_q:
                         running = 0
                         self.cpu.saveKnowMoves()
-
+                    
                     elif event.key == pygame.K_l:
                         if not Start:
                             Start = True
@@ -220,10 +220,10 @@ class Main:
                             Start = False
                             self.cpu.t_move_queue = []
                             self.cpu.raw_move_queue = []
-
+                    
                     elif event.key == pygame.K_SPACE:
                         self.blox.update_timer = 0
-
+                    
                     elif event.key == pygame.K_p:
                         if self.blox.stop_update != 0:
                             self.blox.stop_update = 0
@@ -231,19 +231,19 @@ class Main:
                         else: 
                             self.blox.stop_update = -1
                             self.cpu.blockbox.stop_update = -1
-
+                    
                     elif event.key == pygame.K_r:
                         self.cpu.call_ia()
                         """if self.r_flag == False:
                             self.r_flag = True
                             self.r_limit = random.randint(100, 200)"""
-
+                    
                     elif event.key == pygame.K_k:
                         if self.k_flag == False:
                             self.k_flag = True
                             self.blox.changing_blocks.append([self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y])
-                          
-
+            
+            
             self.p_count()
             
             self.k_count()
@@ -252,7 +252,7 @@ class Main:
             self.cpu.call_ia2()
             #if Start: self.cpu.gen_random_movements()
             #if self.cpu.raw_move_queue != []:
-                #self.cpu.transform_movements()    
+            #self.cpu.transform_movements()    
             if self.cpu.need_line and not self.cpu.ia.isAlive():
                 print "Quero linha"
                 if self.cpu.t_move_queue == []:
@@ -262,10 +262,10 @@ class Main:
                     self.cpu.blockbox.update_blocks()
                     self.cpu.call_ia2()
                     self.update_blockbox(self.cpu.blockbox)
-        
+            
             if self.cpu.t_move_queue != []:
                 self.cpu.execute_cpu_movements()
-                
+            
             
             for blockbox in self.bb_list:
                 if not blockbox.fail:
@@ -274,7 +274,7 @@ class Main:
                     self.clear(blockbox)
                     if blockbox.stop_update == 0:
                         self.update_blockbox(blockbox)
-                       
+                    
                     elif blockbox.stop_update > 0: blockbox.stop_update -= 1
                 else:
                     blockbox.failure()
@@ -288,7 +288,7 @@ class Main:
             self.rectlist.append(self.cpu.blockbox.score.rect)
             self.rectlist.append(self.timer.update_chronometer())
             #self.rectlist.append(self.cpu.blockbox.score.rect)
-
+            
             # Desenha os elementos da blockbox na tela
             for blockbox in self.bb_list:          
                 blockbox.block_group.draw(self.screen)
@@ -307,14 +307,14 @@ class Main:
             
             # Como o score fica fora da blockbox, devemos limpar tambem a area ocupada por ele
             self.blockbox_sprite.clear(self.screen, self.background)
-
+            
             # Jogo rodando em 60fps
             self.frame_number += 1
             self.frame_counter += self.clock.tick()
-            
-            
+    
+    
     """   METODOS PARA TESTES   """
-
+    
     def p_count(self):
         if self.p_flag:
             self.p_counter += 1
@@ -324,7 +324,7 @@ class Main:
                 self.blox.changing_blocks.append([self.blox.cursor.pos_rel_x+1, self.blox.cursor.pos_rel_y])
                 self.p_counter = 0
                 self.p_flag = False
-                 
+    
     
     def k_count(self):
         if self.k_flag:
@@ -333,7 +333,7 @@ class Main:
                 self.blox.changing_blocks.append([self.blox.cursor.pos_rel_x-1, self.blox.cursor.pos_rel_y-1])
                 self.k_counter = 0
                 self.k_flag = False
-                 
+    
     # TESTE: Gera diversos movimentos aleatorios em espacos de frames pequeno para testar colisoes
     # entre operacoes
     def r_count(self):
@@ -349,10 +349,10 @@ class Main:
                 self.r_counter = 0
                 self.r_limit = 0
                 return
-                
+            
             self.r_counter += 1
 
-        
+
 if __name__ == "__main__":
     # Inicializa objeto main e entra no loop principal
     main_window = Main()
