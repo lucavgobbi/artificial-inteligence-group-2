@@ -137,7 +137,7 @@ class Main:
        
     def update_blockbox(self, bb):       
         if bb.update_timer >= 0:
-            bb.update_timer -= 1
+            bb.update_timer = 1
             
         else:
             bb.block_group.update(self.rise_value)
@@ -211,6 +211,7 @@ class Main:
                     
                     elif event.key == pygame.K_q:
                         running = 0
+                        self.cpu.saveKnowMoves()
 
                     elif event.key == pygame.K_l:
                         if not Start:
@@ -248,23 +249,33 @@ class Main:
             self.k_count()
             
             self.r_count()
-            #self.cpu.call_ia2()
+            self.cpu.call_ia2()
             #if Start: self.cpu.gen_random_movements()
             #if self.cpu.raw_move_queue != []:
                 #self.cpu.transform_movements()    
-                
+            if self.cpu.need_line and not self.cpu.ia.isAlive():
+                print "Quero linha"
+                if self.cpu.t_move_queue == []:
+                    print "Me de linha"
+                    self.update_timer = 0
+                    self.cpu.need_line = False
+                    self.cpu.blockbox.update_blocks()
+                    self.cpu.call_ia2()
+                    self.update_blockbox(self.cpu.blockbox)
+        
             if self.cpu.t_move_queue != []:
                 self.cpu.execute_cpu_movements()
+                
             
             for blockbox in self.bb_list:
                 if not blockbox.fail:
                     self.change(blockbox)
                     self.fall(blockbox)
                     self.clear(blockbox)
-                    """if blockbox.stop_update == 0:
+                    if blockbox.stop_update == 0:
                         self.update_blockbox(blockbox)
                        
-                    elif blockbox.stop_update > 0: blockbox.stop_update -= 1"""
+                    elif blockbox.stop_update > 0: blockbox.stop_update -= 1
                 else:
                     blockbox.failure()
             

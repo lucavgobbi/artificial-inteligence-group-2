@@ -11,6 +11,7 @@ from vteste import *
 import threading
 import copy
 from pprint import pprint
+import cPickle
 
 class Cpu:
     
@@ -31,6 +32,19 @@ class Cpu:
         self.stop_ia = False
         
         self.last_m = []
+        
+        self.need_line = False
+        
+        if(os.path.isfile("know.moves")):
+            f = open("know.moves", 'r')
+            self.knowMoves = cPickle.load(f)
+        else:
+            self.knowMoves = dict()
+
+    def saveKnowMoves(self):
+        f = open('know.moves', 'w')
+        cPickle.dump(self.knowMoves, f)
+        f.close()
 
     def call_ia(self):
         tree = buildTree(self.last_m, 3)
@@ -50,7 +64,7 @@ class Cpu:
 
     def init_ia(self):
         #return
-        self.ia = IaThread(self.blockbox.block_config)
+        self.ia = IaThread(self.blockbox.block_config, self.knowMoves)
         self.ia.start()
         self.raw_move_queue = []        
         self.t_move_queue = []
@@ -62,22 +76,27 @@ class Cpu:
         if self.ia.isAlive() or self.stop_ia:
             return
         else:
-            for move in self.ia.path:
-                l.append([move.c, move.r])
-                #print move.c, move.r
-            
-            end_matrix = copy.deepcopy(self.ia.path[-1].m)
-            if end_matrix != []:
-                print "$$$$$$$$$$$$$$$$$$$$"
-                printMatrix(end_matrix)
-                print "$$$$$$$$$$$$$$$$$$$$"
-                self.ia = None
-                self.ia = IaThread(end_matrix)
-                self.ia.start()
+            if len(self.ia.path) > 0:
+                for move in self.ia.path:
+                    l.append([move.c, move.r])
+                    #print move.c, move.r
+                
+                end_matrix = copy.deepcopy(self.ia.path[-1].m)
+                if end_matrix != []:
+                    #print "$$$$$$$$$$$$$$$$$$$$"
+                    #printMatrix(end_matrix)
+                    #print "$$$$$$$$$$$$$$$$$$$$"
+                    self.ia = None
+                    self.ia = IaThread(end_matrix, self.knowMoves)
+                    self.ia.start()
+                else:
+                    self.stop_ia = True
+                    self.need_line = True
+                self.raw_move_queue.append(l)
+                self.transform_movements()
             else:
-                self.stop_ia = True
-            self.raw_move_queue.append(l)
-            self.transform_movements()
+                self.stop_ia = True;
+                self.need_line = True
             #self.stop_ia = True
         
     def gen_random_movements(self):
