@@ -137,7 +137,7 @@ class Main:
        
     def update_blockbox(self, bb):       
         if bb.update_timer >= 0:
-            bb.update_timer = 1
+            bb.update_timer = 1 # mudado para =1 para não subir sozinha
             
         else:
             bb.block_group.update(self.rise_value)
