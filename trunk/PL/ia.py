@@ -6,29 +6,27 @@ import copy
 import threading
 
 class IaThread (threading.Thread):
-    def __init__ (self, m):
-        self.matrix = m;
+    def __init__ (self, m, knowMoves):
+        self.matrix = m
+        self.knowMoves = knowMoves
         threading.Thread.__init__ (self)
         
     def run (self):
-        steps = 3
-        tree = buildTree(self.matrix, steps)
-        self.path = maxPath(tree)
+        steps = 3#estimateHeight(self.matrix)
+        matrixImage = makeImage(self.matrix)
+        self.path = []
+        if(matrixImage in self.knowMoves):
+            self.path = self.knowMoves[matrixImage]
+        else:
+            tree = buildTree(self.matrix, steps)
+            point = False
+            self.path = maxPath(tree)
+            for move in self.path:
+                if move.p > 0:
+                    print move.p
+                    self.knowMoves[matrixImage] = newKnowMove(self.path)
 
 
-#IA Decision
-def IA(originalM):
-    steps = 3
-    tree = buildTree(originalM, steps)
-    path = maxPath(tree)
-    while(path[0].p > 0):
-        for step in path:
-            printMove(step)
-            printMatrix(step.m)
-        tree = buildTree(path[steps-1].m, steps)
-        path = maxPath(tree)
-    return path
-#End of IA Decision
 
 #Tree building
 def buildMoves(m, hashTabu):
@@ -63,8 +61,19 @@ def fillNodes(moves, h, hashTabu):
 
 #Heuristics
 
-
-
+def estimateHeight(m):
+    n = 0;
+    for r in range(0,12):
+        for c in range(0,6):
+            if(m[r][c] != 0):
+                n+=1
+    if (n > 20):
+        return 3
+    if (n > 15):
+        return 4
+    if (n > 10):
+        return 5
+    return 6
 #End of Heuristics
 
 #Path finding
@@ -103,6 +112,13 @@ def findMax(moves, bestMoves):
 #End of Path finding
 
 #Hashing
+
+def newKnowMove(path):
+    newpath = []
+    for move in path:
+        newpath.append(Move(move.p, move.r, move.c, []))
+    newpath[-1].m = path[-1].m
+    return newpath
 
 def makeImage(m):
     newHash = ""
