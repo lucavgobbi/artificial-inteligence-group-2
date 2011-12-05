@@ -49,6 +49,7 @@ class Cpu:
         if self.blockbox.update_counter == 7:
             self.blockbox.update_counter = 0
             self.need_line = False
+            self.cursor_final_position[1] += 1
             self.blockbox.update_blocks()
             self.init_ia()
             
