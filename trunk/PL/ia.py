@@ -1,5 +1,4 @@
 from validate import *
-from vteste import *
 from move import *
 import random
 import copy
@@ -12,6 +11,7 @@ class IaThread (threading.Thread):
         threading.Thread.__init__ (self)
         
     def run (self):
+        print "New IA Thread"
         steps = 3#estimateHeight(self.matrix)
         matrixImage = makeImage(self.matrix)
         self.path = []
@@ -23,7 +23,7 @@ class IaThread (threading.Thread):
             self.path = maxPath(tree)
             for move in self.path:
                 if move.p > 0:
-                    print move.p
+                    print printMove(move)
                     self.knowMoves[matrixImage] = newKnowMove(self.path)
 
 
@@ -146,3 +146,30 @@ def checkHash(m, myhash):
     return True
 
 #End of Hashing
+
+#Debbuging
+
+def printMatrix(m):
+    for i in range(11, -1, -1):
+        new = []
+        for k in range(0, 6):
+            if m[i][k] == 0:
+                new.append(" ")
+            elif m[i][k] == 1:
+                new.append('\033[1;45m'+str(m[i][k])+'\033[1;m')
+            elif m[i][k] == 2:
+                new.append('\033[1;46m'+str(m[i][k])+'\033[1;m')
+            elif m[i][k] == 3:
+                new.append('\033[1;43m'+str(m[i][k])+'\033[1;m')
+            elif m[i][k] == 4:
+                new.append('\033[1;41m'+str(m[i][k])+'\033[1;m')
+            elif m[i][k] == 5:
+                new.append('\033[1;42m'+str(m[i][k])+'\033[1;m')
+        print new[0], "", new[1], "", new[2], "", new[3], "", new[4], "", new[5]
+
+def printMoves(m):
+    for i in m:
+        printMove(i)
+
+def printMove(m):
+    print str(m.p) + " - " + str(m.r) + ":" + str(m.c)

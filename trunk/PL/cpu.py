@@ -7,7 +7,6 @@ from blockbox import Blockbox
 from adds import *
 from ia import *
 from move import *
-from vteste import *
 import threading
 import copy
 from pprint import pprint
@@ -41,11 +40,27 @@ class Cpu:
         else:
             self.knowMoves = dict()
 
+#forca uma nova linha a surgir
+    def rise_line(self):
+        self.blockbox.block_group.update(3)
+        self.blockbox.cursor_group.update(3)
+        self.blockbox.update_counter += 1
+
+        if self.blockbox.update_counter == 7:
+            self.blockbox.update_counter = 0
+            self.need_line = False
+            self.blockbox.update_blocks()
+            self.init_ia()
+            
+#self.init_ia()
+      
+#salva o arquivo de KnowMoves
     def saveKnowMoves(self):
         f = open('know.moves', 'w')
         cPickle.dump(self.knowMoves, f)
         f.close()
 
+#chama ia sem thread
     def call_ia(self):
         tree = buildTree(self.last_m, 3)
         best = maxPath(tree)
@@ -62,14 +77,16 @@ class Cpu:
         self.raw_move_queue.append(l)
         self.transform_movements()
 
+#inicia a ia com thread
     def init_ia(self):
-        #return
+        printMatrix(self.blockbox.block_config)
         self.ia = IaThread(self.blockbox.block_config, self.knowMoves)
         self.ia.start()
         self.raw_move_queue = []        
         self.t_move_queue = []
         self.stop_ia = False
 
+#looping da ia com thread
     def call_ia2(self):
         l = []
         
@@ -98,7 +115,8 @@ class Cpu:
                 self.stop_ia = True;
                 self.need_line = True
             #self.stop_ia = True
-        
+
+#gera movimentos aleatorios
     def gen_random_movements(self):
         
         if len(self.t_move_queue) < 8:
@@ -182,7 +200,7 @@ class Cpu:
         self.t_move_queue.append(move_list)
         self.cursor_final_position = moves_to_transform[-1]
         
-
+#executa os movimentos que estao na fila
     def execute_cpu_movements(self):
         
         if self.t_move_queue == []:
