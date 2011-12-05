@@ -26,22 +26,9 @@ class Main:
         ia = IaThread(m);
         ia.start();
         while ia.isAlive():
-            print "run"
-         
+            aux = 1
         
-#printMatrix(ia.path[2].m)
-        for move in ia.path:
-            print move.c, move.r
-            printMatrix(move.m)
-        #ia = IaThread(ia.path[2].m)
-        #ia.start();
-            #while ia.isAlive():
-    #aux = 1
-        
-                #for move in ia.path:
-                #print move.c, move.r
-                #printMatrix(move.m)
-#print "$$$$$$$$$$"
+
 
 def printMoves(m):
     for i in m:
