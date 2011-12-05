@@ -135,6 +135,8 @@ class Block(pygame.sprite.Sprite):
         try:
             if Block.block_colors[self.color_name] == []:
                 Block.block_colors[self.color_name] = [load_image(self.color_name+"_B"+str(i)+".PNG") for i in range(0,7)]
+                Block.block_colors[self.color_name].set_colorkey((255,0,255))
+                Block.block_colors[self.color_name].set_alpha(128)
         except AttributeError:
             print self.block_type
 

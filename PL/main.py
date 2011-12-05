@@ -136,7 +136,7 @@ class Main:
     
     
     def update_blockbox(self, bb):       
-        if bb.update_timer >= 0:
+        if bb.update_timer > 0:
             bb.update_timer = 1
         
         else:
@@ -149,8 +149,8 @@ class Main:
                 bb.update_counter = 0
                 bb.update_blocks()
                 if bb.cpu:
+                    self.cursor_final_position[1] += 1
                     self.cpu.init_ia()
-                    print "passa"
         
         bb.rise_value = 3
     
