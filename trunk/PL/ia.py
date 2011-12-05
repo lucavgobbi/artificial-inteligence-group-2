@@ -12,7 +12,7 @@ class IaThread (threading.Thread):
         
     def run (self):
         print "New IA Thread"
-        steps = 3#estimateHeight(self.matrix)
+        steps = estimateHeight(self.matrix)
         matrixImage = makeImage(self.matrix)
         self.path = []
         if(matrixImage in self.knowMoves):
@@ -25,6 +25,7 @@ class IaThread (threading.Thread):
                     print printMove(move)
                     self.knowMoves[matrixImage] = newKnowMove(self.path)
                 else:
+                    print "No move"
                     self.path = [];
                     return
 
@@ -70,9 +71,9 @@ def estimateHeight(m):
                 n+=1
     if (n > 20):
         return 3
-    if (n > 15):
+    if (n > 12):
         return 4
-    if (n > 10):
+    if (n > 8):
         return 5
     return 6
 #End of Heuristics
