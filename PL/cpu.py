@@ -80,7 +80,7 @@ class Cpu:
 
 #inicia a ia com thread
     def init_ia(self):
-        printMatrix(self.blockbox.block_config)
+        #printMatrix(self.blockbox.block_config)
         self.ia = IaThread(self.blockbox.block_config, self.knowMoves)
         self.ia.start()
         self.raw_move_queue = []        
@@ -94,28 +94,28 @@ class Cpu:
         if self.ia.isAlive() or self.stop_ia:
             return
         else:
-            if len(self.ia.path) > 0:
-                for move in self.ia.path:
-                    l.append([move.c, move.r])
-                    #print move.c, move.r
-                
-                end_matrix = copy.deepcopy(self.ia.path[-1].m)
-                if end_matrix != []:
-                    #print "$$$$$$$$$$$$$$$$$$$$"
-                    #printMatrix(end_matrix)
-                    #print "$$$$$$$$$$$$$$$$$$$$"
-                    self.ia = None
-                    self.ia = IaThread(end_matrix, self.knowMoves)
-                    self.ia.start()
-                else:
-                    self.stop_ia = True
-                    self.need_line = True
-                self.raw_move_queue.append(l)
-                self.transform_movements()
+            if self.ia.isAlive():
+                return
             else:
-                self.stop_ia = True;
-                self.need_line = True
-            #self.stop_ia = True
+                if len(self.ia.path) > 0:
+                    for move in self.ia.path:
+                        l.append([move.c, move.r])
+                        #print move.c, move.r
+                    
+                    end_matrix = copy.deepcopy(self.ia.path[-1].m)
+                    if end_matrix != []:
+                        self.ia = None
+                        self.ia = IaThread(end_matrix, self.knowMoves)
+                        self.ia.start()
+                    else:
+                        self.stop_ia = True
+                        self.need_line = True
+                    self.raw_move_queue.append(l)
+                    self.transform_movements()
+                else:
+                    self.stop_ia = True;
+                    self.need_line = True
+                #self.stop_ia = True
 
 #gera movimentos aleatorios
     def gen_random_movements(self):

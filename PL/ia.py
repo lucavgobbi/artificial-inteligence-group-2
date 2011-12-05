@@ -19,13 +19,14 @@ class IaThread (threading.Thread):
             self.path = self.knowMoves[matrixImage]
         else:
             tree = buildTree(self.matrix, steps)
-            point = False
             self.path = maxPath(tree)
             for move in self.path:
                 if move.p > 0:
                     print printMove(move)
                     self.knowMoves[matrixImage] = newKnowMove(self.path)
-
+                else:
+                    self.path = [];
+                    return
 
 
 #Tree building
