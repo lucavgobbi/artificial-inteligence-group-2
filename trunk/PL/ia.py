@@ -19,6 +19,7 @@ class IaThread (threading.Thread):
     def run (self):
         print "New IA Thread"
         steps = defineHeight(self.matrix)
+        print "Altura: " + str(steps)
         matrixImage = makeImage(self.matrix)
         self.path = []
         if(matrixImage in self.knowMoves):
@@ -86,7 +87,7 @@ def estimateHeight(m):
     return 6
 
 def defineHeight(m):
-    for r in range(9,12):
+    for r in range(7,12):
         for c in range(0,6):
             if(m[r][c] != 0):
                 return 1

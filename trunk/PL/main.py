@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
+import sys, os
 import pygame
 import random
 from pygame.locals import *
@@ -79,7 +79,29 @@ class Main:
         self.r_flag = False
         
         """ Variaveis de teste """
-    
+
+        self.args = {'static': 1, 'file': 'no', 'height': 5}
+        self.read_args()
+
+    def read_args(self):
+        if len(sys.argv) == 1:
+            return
+        
+        if len(sys.argv) != 7:
+            print "Erro nos argumentos!"
+            print "Formato: python main.py file file_name static value height value"
+            print "file: Arquivo de base. file_name: nome (no para nenhum)"
+            print "static: jogo dinamico ou estatico. value: True/False"
+            print "init_height: altura maxima inicial. value: 1 a 12"
+            sys.exit()
+        
+        self.args = {}
+        self.args[sys.argv[1]] = sys.argv[2]
+        self.args[sys.argv[3]] = int(sys.argv[4])
+        self.args[sys.argv[5]] = int(sys.argv[6])
+        
+        print self.args
+ 
     # Carrega sprites e cria grupos de sprites de inicializacao
     def load_sprites(self):
         
@@ -92,11 +114,10 @@ class Main:
         self.blockbox_sprite.add(self.cpu.blockbox)
         
         # Configuracao inicial de blocos
-        #self.blox.initiate_blocks()
         
-        if len(sys.argv) > 1:
-            self.blox.file_initiate_blocks(sys.argv[1])
-            self.cpu.blockbox.file_initiate_blocks(sys.argv[1])
+        if self.args["file"] != "no":
+            self.blox.file_initiate_blocks(self.args["file"])
+            self.cpu.blockbox.file_initiate_blocks(self.args["file"])
         else:
             self.blox.initiate_blocks()
             self.cpu.blockbox.initiate_blocks()
@@ -139,7 +160,7 @@ class Main:
     
     def update_blockbox(self, bb):       
         if bb.update_timer > 0:
-            bb.update_timer -= 1
+            if not self.args["static"]: bb.update_timer -= 1
         
         else:
             bb.block_group.update(self.rise_value)
@@ -325,7 +346,7 @@ class Main:
             
             # Jogo rodando em 30fps
             self.frame_number += 1
-            self.frame_counter += self.clock.tick(30)
+            self.frame_counter += self.clock.tick(60)
     
     
     """   METODOS PARA TESTES   """
