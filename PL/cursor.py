@@ -17,10 +17,12 @@ class Choice_cursor(pygame.sprite.Sprite):
         # Carrega a imagem do cursor
         self.image = load_image("cursor.png")
         self.image.set_colorkey((255,0,255))
+
+        self.surf_rect = surf_rect
     
         # Puxa o retangulo que contem o cursor e seta sua posicao inicial
         self.rect = self.image.get_rect()
-        self.rect.topleft = (surf_rect.left+10 + self.cs_w*2 ,surf_rect.top+5 + self.cs_h)
+        self.rect.topleft = (self.surf_rect.left+10 + self.cs_w*2 ,self.surf_rect.top+5 + self.cs_h)
     
         # limite superior que o cursor nao pode passar
         self.top_limit = surf_rect.top + 5
@@ -45,6 +47,11 @@ class Choice_cursor(pygame.sprite.Sprite):
     # Desenha o cursor na tela. Borda de retangulo branca
     def draw_cursor(self, surf):
         surf.blit(self.image, self.rect)
+
+    def reset_cursor(self):
+        self.rect.topleft = (self.surf_rect.left+10 + self.cs_w*2 ,self.surf_rect.top+5 + self.cs_h)
+        self.pos_rel_x = 2
+        self.pos_rel_y = 10
 
     # Controla o movimento do cursor
     def move_cursor_UP(self, surf_rect):    

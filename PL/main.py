@@ -80,25 +80,27 @@ class Main:
         
         """ Variaveis de teste """
 
-        self.args = {'static': 1, 'file': 'no', 'height': 5}
+        self.args = {'static': 1, 'file': 'no', 'height': 5, 'time': 3}
         self.read_args()
 
     def read_args(self):
         if len(sys.argv) == 1:
             return
         
-        if len(sys.argv) != 7:
+        if len(sys.argv) != 9:
             print "Erro nos argumentos!"
             print "Formato: python main.py file file_name static value height value"
             print "file: Arquivo de base. file_name: nome (no para nenhum)"
             print "static: jogo dinamico ou estatico. value: True/False"
-            print "init_height: altura maxima inicial. value: 1 a 12"
+            print "height: altura maxima inicial. value: 1 a 12"
+            print "time: tempo de jogo. value: maior que 0. 0 significa jogo infinito"
             sys.exit()
         
         self.args = {}
         self.args[sys.argv[1]] = sys.argv[2]
         self.args[sys.argv[3]] = int(sys.argv[4])
         self.args[sys.argv[5]] = int(sys.argv[6])
+        self.args[sys.argv[7]] = int(sys.argv[8])
         
         print self.args
  
@@ -106,8 +108,8 @@ class Main:
     def load_sprites(self):
         
         # objetos principais da tela. Blox e o quadro que contem os blocos.
-        self.blox = Blockbox(152, 262, 100, 150, self.screen, False)
-        self.cpu = Cpu((152, 262, 388, 150), self.screen)
+        self.blox = Blockbox(152, 262, 100, 150, self.screen, False, self.args["height"])
+        self.cpu = Cpu((152, 262, 388, 150), self.screen, self.args["height"])
         
         # Grupo de sprites unico para o cursor e para a caixa de blocos.
         self.blockbox_sprite = pygame.sprite.RenderUpdates(self.blox)
@@ -208,11 +210,17 @@ class Main:
 
         self.msg_group.clear(self.screen, self.background)
         pygame.display.update(self.rectlist)
+        self.msg_group.remove(self.msg1)
 
         self.timer = chronometer(pygame.time.get_ticks(), 10, 10)
         self.timer_group = pygame.sprite.RenderUpdates()
         self.timer_group.add(self.timer)
         while running == 2:
+            if self.args["time"] != 0:
+                if self.timer.seg_elapsed >= self.args["time"] or self.timer.min_elapsed >= 10:
+                    kill_thread()
+                    break
+            
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = 0
@@ -346,7 +354,49 @@ class Main:
             
             # Jogo rodando em 30fps
             self.frame_number += 1
-            self.frame_counter += self.clock.tick(60)
+            self.frame_counter += self.clock.tick(30)
+
+        pygame.display.update(self.rectlist)
+        for blockbox in self.bb_list:
+            blockbox.block_group.clear(self.screen, self.background)
+            blockbox.cursor_group.clear(self.screen, self.background)
+        Blockbox.score_group.clear(self.screen, self.background)
+        self.timer_group.clear(self.screen, self.background)
+        self.blockbox_sprite.clear(self.screen, self.background)
+        pygame.display.update(self.rectlist)
+
+
+        msg_player = MSG(self.screen, "PLAYER", 38, (70, 140), (0,0,255))
+        msg_cpu = MSG(self.screen, "CPU", 38, (350, 140), (255,0,0))
+
+        score_player = MSG(self.screen, "SCORE: " + str(self.blox.score.value), 24, (70, 190), (255,255,255))
+        score_cpu = MSG(self.screen, "SCORE: " + str(self.cpu.blockbox.score.value), 24, (350, 190), (255,255,255))
+
+        l_combo_player = MSG(self.screen, "MAIOR COMBO: " + str(self.blox.largest_combo), 24, (70, 240), (255,255,255))
+        l_combo_cpu = MSG(self.screen, "MAIOR COMBO: " + str(self.cpu.blockbox.largest_combo), 24, (350, 240), (255,255,255))
+
+        l_chain_player = MSG(self.screen, "MAIOR CHAIN: " + str(self.blox.largest_chain), 24, (70, 290), (255,255,255))
+        l_chain_cpu = MSG(self.screen, "MAIOR CHAIN: " + str(self.cpu.blockbox.largest_chain), 24, (350, 290), (255,255,255))
+
+
+        if self.blox.score.value >= self.cpu.blockbox.score.value:
+            msg_vitoria = MSG(self.screen, "VITORIA!", 38, (70, 90), (0,0,255))
+        else:
+            msg_vitoria = MSG(self.screen, "VITORIA!", 38, (350, 90), (255,0,0))
+
+        self.msg_group.add(msg_player, msg_cpu, score_player, score_cpu, l_combo_player, l_combo_cpu, l_chain_player, l_chain_cpu, msg_vitoria)
+            
+        running = 3
+        while running == 3:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = 0
+                    kill_thread()
+                    
+            self.rectlist = self.msg_group.draw(self.screen)
+            pygame.display.update(self.rectlist)
+            self.msg_group.clear(self.screen, self.background)
+            
     
     
     """   METODOS PARA TESTES   """

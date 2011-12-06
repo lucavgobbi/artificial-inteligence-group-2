@@ -18,7 +18,7 @@ class Blockbox(pygame.sprite.Sprite):
     score_group = pygame.sprite.RenderUpdates()
     
     # Inicializacao
-    def __init__(self, w, h, pos_x, pos_y, screen, cpu, transp=128):
+    def __init__(self, w, h, pos_x, pos_y, screen, cpu, ini_max_height, transp=128):
 
         # Inicia a classe Sprite
         pygame.sprite.Sprite.__init__(self)
@@ -60,7 +60,7 @@ class Blockbox(pygame.sprite.Sprite):
         # Matriz que representa abstracao da configuracao de blocos atual da tela
         self.block_config = []
         
-        self.max_height = 5
+        self.max_height = ini_max_height
 
         self.max_update_value = 36
         self.update_timer = self.max_update_value
@@ -86,6 +86,9 @@ class Blockbox(pygame.sprite.Sprite):
                     
         self.score = Score(self.rect, 0)
         Blockbox.score_group.add(self.score)
+
+        self.largest_combo = 0
+        self.largest_chain = 0
         
         self.cpu = cpu
 
@@ -562,6 +565,8 @@ class Blockbox(pygame.sprite.Sprite):
                 self.check_fall(block, chain+1)
             #print "BLOCK_SET\n\n", block_set, "\n\nBLOCK_SET"
             #print len(block_set)
+            if number > self.largest_combo: self.largest_combo = number
+            if chain > self.largest_chain: self.largest_chain = chain
             self.score.increase_score(number, chain)
             self.cleared_blocks.remove(block_set)
             return
@@ -642,6 +647,7 @@ class Blockbox(pygame.sprite.Sprite):
             self.initiate_blocks()
             self.fail_timer = 90
             self.stop_update = 0
+            self.cursor.reset_cursor()
             return True
 
         return False
