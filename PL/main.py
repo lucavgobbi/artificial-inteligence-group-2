@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import sys
 import pygame
@@ -10,6 +11,7 @@ from adds import *
 from ia import *
 import copy
 from chron import chronometer
+from msg import MSG
 
 if not pygame.font: 
     print "Warning: Fonts nao disponivel"
@@ -41,17 +43,16 @@ class Main:
         self.rise_value = 3        
         self.stop_update_timer = 0
         self.stop_update = True
+        self.font = pygame.font.Font(None, 24)
         
         # Inicializa janela principal com os tamanhos dados
         self.screen = pygame.display.set_mode((self.width, self.height), pygame.DOUBLEBUF, 32)
+        pygame.display.set_caption("Puzzle League")
+        pygame.display.set_icon(load_image("icon.png"))
         
         # Inicializa o clock
         self.clock = pygame.time.Clock()
         self.clock_teste = pygame.time.Clock()
-        
-        self.timer = chronometer(pygame.time.get_ticks(), 10, 10)
-        self.timer_group = pygame.sprite.RenderUpdates()
-        self.timer_group.add(self.timer)
         
         # cria um background e anexa a tela
         self.background = pygame.Surface((self.width, self.height)).convert()
@@ -152,7 +153,7 @@ class Main:
                 if bb.cpu:
                     kill_thread()
                     self.cpu.cursor_final_position[1] += 1
-                    self.cpu.init_ia()
+                    if not bb.fail: self.cpu.init_ia()
         
         bb.rise_value = 3
     
@@ -169,11 +170,32 @@ class Main:
         
         self.load_sprites()
         Start = False
+        self.msg1 = MSG(self.screen, "APERTE ESPAÇO PARA COMEÇAR", 24, (170, 100), (255,255,255))
+        self.msg_group = pygame.sprite.RenderUpdates(self.msg1)
+        self.rectlist = self.msg_group.draw(self.screen)
+        pygame.display.update(self.rectlist)
         
-        while running:
+        
+        while running == 1:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = 0
+                    kill_thread()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:                   
+                        running = 2
+
+        self.msg_group.clear(self.screen, self.background)
+        pygame.display.update(self.rectlist)
+
+        self.timer = chronometer(pygame.time.get_ticks(), 10, 10)
+        self.timer_group = pygame.sprite.RenderUpdates()
+        self.timer_group.add(self.timer)
+        while running == 2:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = 0
+                    kill_thread()
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         self.last_frame = self.frame_number
@@ -252,9 +274,6 @@ class Main:
             
             self.r_count()
             self.cpu.call_ia2()
-            #if Start: self.cpu.gen_random_movements()
-            #if self.cpu.raw_move_queue != []:
-            #self.cpu.transform_movements()    
             if self.cpu.need_line and not self.cpu.ia.isAlive() and self.cpu.t_move_queue == [] and self.cpu.blockbox.falling_blocks == []:
                 self.cpu.rise_line()
                     
@@ -273,7 +292,8 @@ class Main:
                     
                     elif blockbox.stop_update > 0: blockbox.stop_update -= 1
                 else:
-                    blockbox.failure()
+                    if blockbox.failure() and blockbox.cpu:
+                        self.cpu.init_ia()
             
             # Desenha a blockbox e depois seus elementos. Retorna a area em que desenhamos a blockbox para atualiza-la
             self.rectlist = self.blockbox_sprite.draw(self.screen)
@@ -283,7 +303,6 @@ class Main:
             self.rectlist.append(self.blox.score.rect)
             self.rectlist.append(self.cpu.blockbox.score.rect)
             self.rectlist.append(self.timer.update_chronometer())
-            #self.rectlist.append(self.cpu.blockbox.score.rect)
             
             # Desenha os elementos da blockbox na tela
             for blockbox in self.bb_list:          
@@ -304,7 +323,7 @@ class Main:
             # Como o score fica fora da blockbox, devemos limpar tambem a area ocupada por ele
             self.blockbox_sprite.clear(self.screen, self.background)
             
-            # Jogo rodando em 60fps
+            # Jogo rodando em 30fps
             self.frame_number += 1
             self.frame_counter += self.clock.tick(30)
     

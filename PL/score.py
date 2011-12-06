@@ -37,7 +37,6 @@ class Score(pygame.sprite.Sprite):
     #  @param chain: numero de chain
     def increase_score(self, number_clear, chain):
         add = 90 + (number_clear-3)*130 + chain*(90 + number_clear*5)
-        #add = number_clear + chain
         self.render_score(add)
 
     def change_score(self, value):

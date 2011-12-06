@@ -59,6 +59,8 @@ class Blockbox(pygame.sprite.Sprite):
         
         # Matriz que representa abstracao da configuracao de blocos atual da tela
         self.block_config = []
+        
+        self.max_height = 5
 
         self.max_update_value = 36
         self.update_timer = self.max_update_value
@@ -66,7 +68,7 @@ class Blockbox(pygame.sprite.Sprite):
 
         # Contador de stop. Se -1, tela parada (para testes), 0 blocos sao adicionados, maior que 0 tempo de pausa em decorrencia
         # da eliminacao de blocos
-        self.stop_update = -1
+        self.stop_update = 0
 
         # Quando uma linha com blocos passa da ultima linha superior, o jogador falha. Uma falha corta o score do jogador
         # pela metade, e reseta sua blockbox para um estado inicial
@@ -141,6 +143,7 @@ class Blockbox(pygame.sprite.Sprite):
     # Cria a configuracao inicial de blocos na tela. Aleatoria, com maximo de 5 linhas preenchidas.
     def initiate_blocks(self):
         self.block_config = []
+        self.block_matrix = []
         self.changing_blocks = []
         self.falling_blocks = []
         self.changed = []
@@ -149,7 +152,6 @@ class Blockbox(pygame.sprite.Sprite):
         self.block_config.append([])
         # Altura da tela
         #self.max_height = random.randint(2,5)
-        self.max_height = 5
         
         # Loop especifico para a primeira linha. Nunca adiciona bloco vazio
         for k in range(0,6):
@@ -211,7 +213,7 @@ class Blockbox(pygame.sprite.Sprite):
             self.block_config.append([])
             
             for k in range(0,6):
-                # Caso o tipo de bloco seja 0, apenda na matriz de blocos None na de config 0
+                # Caso o tipo de bloco seja 0, apenda na matriz de blocos None e na de config 0
                 b = Block((self.rect.left, self.rect.top, k, i), 22, 21, 0)
                 self.block_config[i].append(0)
                 self.block_matrix[i].append(b)
@@ -635,12 +637,14 @@ class Blockbox(pygame.sprite.Sprite):
 
         if self.fail_timer == 0:
             self.fail = False
+            self.max_height = 2
             self.score.change_score(self.score.value/2)
             self.initiate_blocks()
             self.fail_timer = 90
             self.stop_update = 0
+            return True
 
-        return
+        return False
 
 
     # TESTE: Printa matriz de configuracao de blocos
