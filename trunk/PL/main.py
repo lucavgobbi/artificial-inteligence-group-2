@@ -7,6 +7,7 @@ from pygame.locals import *
 from blockbox import Blockbox
 from cpu import Cpu
 from adds import *
+from ia import *
 import copy
 from chron import chronometer
 
@@ -137,7 +138,7 @@ class Main:
     
     def update_blockbox(self, bb):       
         if bb.update_timer > 0:
-            bb.update_timer = 1
+            bb.update_timer -= 1
         
         else:
             bb.block_group.update(self.rise_value)
@@ -149,7 +150,8 @@ class Main:
                 bb.update_counter = 0
                 bb.update_blocks()
                 if bb.cpu:
-                    self.cursor_final_position[1] += 1
+                    kill_thread()
+                    self.cpu.cursor_final_position[1] += 1
                     self.cpu.init_ia()
         
         bb.rise_value = 3
@@ -304,7 +306,7 @@ class Main:
             
             # Jogo rodando em 60fps
             self.frame_number += 1
-            self.frame_counter += self.clock.tick()
+            self.frame_counter += self.clock.tick(30)
     
     
     """   METODOS PARA TESTES   """
