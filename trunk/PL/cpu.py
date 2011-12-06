@@ -14,9 +14,9 @@ import cPickle
 
 class Cpu:
     
-    def __init__(self, pos_size, surf):
+    def __init__(self, pos_size, surf, ini_max_height):
         
-        self.blockbox = Blockbox(pos_size[0], pos_size[1], pos_size[2], pos_size[3], surf, True)
+        self.blockbox = Blockbox(pos_size[0], pos_size[1], pos_size[2], pos_size[3], surf, True, ini_max_height)
         
         self.raw_move_queue = []        
         self.t_move_queue = []
