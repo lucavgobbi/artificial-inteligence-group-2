@@ -4,15 +4,21 @@ import random
 import copy
 import threading
 
+die = False
+
+def kill_thread():
+    die = True
+
 class IaThread (threading.Thread):
     def __init__ (self, m, knowMoves):
         self.matrix = m
         self.knowMoves = knowMoves
         threading.Thread.__init__ (self)
+        die = False
         
     def run (self):
         print "New IA Thread"
-        steps = estimateHeight(self.matrix)
+        steps = defineHeight(self.matrix)
         matrixImage = makeImage(self.matrix)
         self.path = []
         if(matrixImage in self.knowMoves):
@@ -42,6 +48,7 @@ def buildMoves(m, hashTabu):
                 mt[r][c] = mt[r][c+1]
                 mt[r][c+1] = aux
                 if(checkHash(mt, hashTabu)):
+                    if die: return []
                     p = analize(mt)
                     move = Move(p, r, c, mt)
                     moves.append(move)
@@ -56,6 +63,7 @@ def buildTree(m, h):
 def fillNodes(moves, h, hashTabu):
         for move in moves:
             move.addChild(buildMoves(move.m, hashTabu))
+            if die: return
             if(h > 0):
                 fillNodes(move.child, h-1, hashTabu)
 
@@ -76,6 +84,13 @@ def estimateHeight(m):
     if (n > 8):
         return 5
     return 6
+
+def defineHeight(m):
+    for r in range(9,12):
+        for c in range(0,6):
+            if(m[r][c] != 0):
+                return 1
+    return 3
 #End of Heuristics
 
 #Path finding
