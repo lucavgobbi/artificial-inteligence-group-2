@@ -12,6 +12,8 @@ class Block(pygame.sprite.Sprite):
     block_colors["yellow"] = []   
     block_colors["red"] = []   
     block_colors["green"] = []
+    block_colors["grey"] = []
+    
     
     # Inicializacao
     def __init__(self, def_position, bw, bh, btype = None):
@@ -116,7 +118,16 @@ class Block(pygame.sprite.Sprite):
             self. isActive = False
             self.rect = pygame.Rect(0, 0, self.block_width, self.block_height)
             return
-
+            
+        elif self.block_type == 6:
+            self.color_name = "grey"
+            if Block.block_colors[self.color_name] == []:
+                Block.block_colors[self.color_name] = [load_image(self.color_name+"_B0.png")]
+            self.image = Block.block_colors[self.color_name][0]
+            self.image_ref = Block.block_colors[self.color_name][0]          
+            self.rect = self.image.get_rect()
+            self.isActive = False
+             
         if self.block_type == 1:
             self.color_name = "purple"
 
@@ -144,7 +155,7 @@ class Block(pygame.sprite.Sprite):
         self.image_ref = Block.block_colors[self.color_name][0]
             
         self.rect = self.image.get_rect()
-        self. isActive = True
+        self.isActive = True
 
     # Limpa um bloco qualquer, ou seja, torna ele inativo
     def clear(self):
