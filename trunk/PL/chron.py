@@ -1,9 +1,11 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import os, sys
 import pygame
 from adds import *
 
+# Controla um cronometro na tela
 class chronometer(pygame.sprite.Sprite):
 
     def __init__(self, elapsed_time, pos_top, pos_left):
@@ -23,6 +25,7 @@ class chronometer(pygame.sprite.Sprite):
 
         self.update_chronometer()
 
+    # Atualiza o cronometro com o tempo que passou no último frame
     def update_chronometer(self):
 
         self.ms_elapsed += self.chron_clock.tick()
@@ -33,7 +36,7 @@ class chronometer(pygame.sprite.Sprite):
 
         return self.render_chronometer()
 
-
+    # Renderiza o cronometro na tela, segundo a sua ultima atualização
     def render_chronometer(self):
         self.image = self.font.render("TIME: {0:1.0f}:{1:02.0f}:{2:03.0f}".format(self.min_elapsed, self.seg_elapsed, self.ms_elapsed), 1, (255, 255, 255))
         self.rect = self.image.get_rect()

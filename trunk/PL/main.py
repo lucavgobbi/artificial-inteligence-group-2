@@ -91,7 +91,7 @@ class Main:
             print "Erro nos argumentos!"
             print "Formato: python main.py file file_name static value height value"
             print "file: Arquivo de base. file_name: nome (no para nenhum)"
-            print "static: jogo dinamico ou estatico. value: True/False"
+            print "static: jogo dinamico ou estatico. value: 1/0"
             print "height: altura maxima inicial. value: 1 a 12"
             print "time: tempo de jogo. value: maior que 0. 0 significa jogo infinito"
             sys.exit()
@@ -115,8 +115,7 @@ class Main:
         self.blockbox_sprite = pygame.sprite.RenderUpdates(self.blox)
         self.blockbox_sprite.add(self.cpu.blockbox)
         
-        # Configuracao inicial de blocos
-        
+        # Configuracao inicial de blocos. Se houver arquivo de parâmetro, abre ele. Senão, inicia aleatório
         if self.args["file"] != "no":
             self.blox.file_initiate_blocks(self.args["file"])
             self.cpu.blockbox.file_initiate_blocks(self.args["file"])
@@ -151,7 +150,9 @@ class Main:
     def change(self, bb):
         for block in bb.changing_blocks:
             bb.change_fin = bb.block_change(block)
-    
+
+    # Checa se existem blocos de uma determinada blockbox que devem ser eliminados. Quando eliminar blocos,
+    # para de atualizar a tela por alguns frames
     def clear(self, bb):
         for block_set in bb.cleared_blocks:
             bb.block_clear(block_set)
@@ -159,7 +160,8 @@ class Main:
         if bb.cleared_blocks != []:
             self.stop_update_timer = 35 + 15*len(bb.cleared_blocks)
     
-    
+    # Atualiza a blockbox dada, subindo um pouco a pilha de blocos. Caso tenha subido o suficiente para adicionar
+    # uma nova linha, adiciona.
     def update_blockbox(self, bb):       
         if bb.update_timer > 0:
             if not self.args["static"]: bb.update_timer -= 1
@@ -173,6 +175,8 @@ class Main:
             if bb.update_counter == 7:
                 bb.update_counter = 0
                 bb.update_blocks()
+                # Se a blockbox for CPU, mata a thread, atualiza a posição do cursor e se nao tiver falhado,
+                # reinicia a IA
                 if bb.cpu:
                     kill_thread()
                     self.cpu.cursor_final_position[1] += 1
@@ -193,12 +197,14 @@ class Main:
         
         self.load_sprites()
         Start = False
+
+        # Mensagem da tela inicial
         self.msg1 = MSG(self.screen, "APERTE ESPAÇO PARA COMEÇAR", 24, (170, 100), (255,255,255))
         self.msg_group = pygame.sprite.RenderUpdates(self.msg1)
         self.rectlist = self.msg_group.draw(self.screen)
         pygame.display.update(self.rectlist)
         
-        
+        # Tela inicial pedindo para apertar espaço
         while running == 1:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -215,6 +221,8 @@ class Main:
         self.timer = chronometer(pygame.time.get_ticks(), 10, 10)
         self.timer_group = pygame.sprite.RenderUpdates()
         self.timer_group.add(self.timer)
+
+        # Tela de jogo. Trata todas as keys possíveis, e trata os elementos e chamadas principais do jogo
         while running == 2:
             if self.args["time"] != 0:
                 if self.timer.min_elapsed >= self.args["time"] or self.timer.min_elapsed >= 10:
@@ -224,7 +232,9 @@ class Main:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = 0
+                    self.cpu.saveKnowMoves()
                     kill_thread()
+
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         self.last_frame = self.frame_number
@@ -247,7 +257,6 @@ class Main:
                         self.last_frame = self.frame_number
                         if [self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y] not in self.blox.changing_blocks:
                             self.blox.changing_blocks.append([self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y])
-                    #self.blox_cpu.changing_blocks.append((self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y))
                     
                     # Tecla para testes. imprime as matrizes de blocos
                     elif event.key == pygame.K_f:
@@ -261,11 +270,14 @@ class Main:
                         print "{0:5f}".format(self.frame_counter/self.frame_number)
                         print "Numero de blocos no grupo"
                         print "{0:d}".format(len(self.blox.block_group))
-                    
+
+                    # Tecla adicional para fechar
                     elif event.key == pygame.K_q:
                         running = 0
                         self.cpu.saveKnowMoves()
-                    
+                        kill_thread()
+
+                    # Teste
                     elif event.key == pygame.K_l:
                         if not Start:
                             Start = True
@@ -273,10 +285,12 @@ class Main:
                             Start = False
                             self.cpu.t_move_queue = []
                             self.cpu.raw_move_queue = []
-                    
+
+                    # Força subida de blocos
                     elif event.key == pygame.K_SPACE:
                         self.blox.update_timer = 0
-                    
+
+                    # Teste
                     elif event.key == pygame.K_p:
                         if self.blox.stop_update != 0:
                             self.blox.stop_update = 0
@@ -284,33 +298,38 @@ class Main:
                         else: 
                             self.blox.stop_update = -1
                             self.cpu.blockbox.stop_update = -1
-                    
+                    # Teste
                     elif event.key == pygame.K_r:
                         self.cpu.call_ia()
                         """if self.r_flag == False:
                             self.r_flag = True
                             self.r_limit = random.randint(100, 200)"""
-                    
+                    # Teste
                     elif event.key == pygame.K_k:
                         if self.k_flag == False:
                             self.k_flag = True
                             self.blox.changing_blocks.append([self.blox.cursor.pos_rel_x, self.blox.cursor.pos_rel_y])
             
-            
+            # Testes
             self.p_count()
-            
-            self.k_count()
-            
+            self.k_count()   
             self.r_count()
+            # /Testes
+
+            # Chama a IA toda vez do loop. Detalhes adicionais na função chamada
             self.cpu.call_ia2()
+
+            # Se A IA quiser linha, nao tiver thread viva, a fila de movimentos estiver vazia, e nao tiver blocos caindo, força
+            # adição de linhas
             if self.cpu.need_line and not self.cpu.ia.isAlive() and self.cpu.t_move_queue == [] and self.cpu.blockbox.falling_blocks == []:
                 self.cpu.rise_line()
                     
-            
+            # Se houver movimentos para executar, executa eles
             if self.cpu.t_move_queue != []:
                 self.cpu.execute_cpu_movements()
             
-            
+            # Para todos os blockboxes presentes na tela, ve se há trocas, vê se há quedas e vê se há eliminações.
+            # Só faz isso tudo se o blockbox nao estiver em estado de falha
             for blockbox in self.bb_list:
                 if not blockbox.fail:
                     self.change(blockbox)
@@ -321,6 +340,7 @@ class Main:
                     
                     elif blockbox.stop_update > 0: blockbox.stop_update -= 1
                 else:
+                    # Se o tratamento de falha terminar e for blockbox de CPU, reinicia a IA
                     if blockbox.failure() and blockbox.cpu:
                         self.cpu.init_ia()
             
@@ -356,6 +376,8 @@ class Main:
             self.frame_number += 1
             self.frame_counter += self.clock.tick(30)
 
+
+        # Ultima atualizaçção da tela limpando todos os elementos do jogo (chamada quando acaba o jogo)
         pygame.display.update(self.rectlist)
         for blockbox in self.bb_list:
             blockbox.block_group.clear(self.screen, self.background)
@@ -366,6 +388,7 @@ class Main:
         pygame.display.update(self.rectlist)
 
 
+        # Cria as mensagens da última tela
         msg_player = MSG(self.screen, "PLAYER", 38, (70, 140), (0,0,255))
         msg_cpu = MSG(self.screen, "CPU", 38, (350, 140), (255,0,0))
 
@@ -385,7 +408,8 @@ class Main:
             msg_vitoria = MSG(self.screen, "VITORIA!", 38, (350, 90), (255,0,0))
 
         self.msg_group.add(msg_player, msg_cpu, score_player, score_cpu, l_combo_player, l_combo_cpu, l_chain_player, l_chain_cpu, msg_vitoria)
-            
+
+        # Controla a última tela, de mostra dos scores
         running = 3
         while running == 3:
             for event in pygame.event.get():

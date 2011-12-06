@@ -33,6 +33,7 @@ class Choice_cursor(pygame.sprite.Sprite):
         self.pos_rel_x = 2
         self.pos_rel_y = 10
 
+    # Atualiza a posicao do cursor
     def update(self, rise_value):
         if self.rect.top - rise_value <= self.top_limit:
             self.rect.top += self.cs_h
