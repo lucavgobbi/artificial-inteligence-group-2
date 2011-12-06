@@ -217,7 +217,7 @@ class Main:
         self.timer_group.add(self.timer)
         while running == 2:
             if self.args["time"] != 0:
-                if self.timer.seg_elapsed >= self.args["time"] or self.timer.min_elapsed >= 10:
+                if self.timer.min_elapsed >= self.args["time"] or self.timer.min_elapsed >= 10:
                     kill_thread()
                     break
             
