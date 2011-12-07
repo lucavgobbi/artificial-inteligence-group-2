@@ -3,6 +3,7 @@ import os, sys
 import pygame
 from pygame.locals import *
 
+# Carrega imagens do jogo segundo um path definido
 def load_image(name):
     # Une o nome da imagem ao path de imagens do jogo
     fullname = os.path.join("data", "images")

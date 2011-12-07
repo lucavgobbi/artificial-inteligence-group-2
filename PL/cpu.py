@@ -14,8 +14,17 @@ from pprint import pprint
 import cPickle
 
 class Cpu:
+    """
+    ## Controla Funções de CPU, como chamada de IA e realização automatizada de movimentos
+    """
     
     def __init__(self, pos_size, surf, ini_max_height):
+        """
+        ## Construtor
+        #  @param pos_size: posição e tamanho da blockbox
+        #  @param surf: surface da tela
+        #  @param ini_max_height: altura maxima da pilha de blocos de inicialização da blockbox
+        """
 
         # Blockbox da CPU
         self.blockbox = Blockbox(pos_size[0], pos_size[1], pos_size[2], pos_size[3], surf, True, ini_max_height)
@@ -52,8 +61,10 @@ class Cpu:
         else:
             self.knowMoves = dict()
 
-    #forca uma nova linha a surgir
     def rise_line(self):
+        """
+        ## Usado pela CPU para forçar uma linha a subir. Equivalente a barra de espaço para player
+        """
         self.blockbox.block_group.update(3)
         self.blockbox.cursor_group.update(3)
         self.blockbox.update_counter += 1
@@ -65,16 +76,21 @@ class Cpu:
             self.blockbox.update_blocks()
             self.init_ia()
             
-#self.init_ia()
       
-    #salva o arquivo de KnowMoves
     def saveKnowMoves(self):
+        """
+        ## Salva o arquivo de KnowMoves, que contem movimentos bons conhecidos
+        """
+        
         f = open('know.moves', 'w')
         cPickle.dump(self.knowMoves, f)
         f.close()
 
-    #chama ia sem thread
     def call_ia(self):
+        """
+        # Chama ia sem thread, para o estado atual da tela
+        """
+        
         tree = buildTree(self.last_m, 3)
         best = maxPath(tree)
         l = []
@@ -83,24 +99,28 @@ class Cpu:
         for m in best:
             l.append([m.c, m.r])
             
-        print "$$$$$$$$$$$$$$$$$$$$"
-        printMatrix(best[-1].m)
-        print "$$$$$$$$$$$$$$$$$$$$"
         self.last_m = copy.deepcopy(best[-1].m)
         self.raw_move_queue.append(l)
         self.transform_movements()
 
-    #inicia a ia com thread
     def init_ia(self):
-        #printMatrix(self.blockbox.block_config)
+        """
+        ## Inicia a thread da IA
+        """
+        
         self.ia = IaThread(self.blockbox.block_config, self.knowMoves)
         self.ia.start()
         self.raw_move_queue = []        
         self.t_move_queue = []
         self.stop_ia = False
 
-    #looping da ia com thread
+
     def call_ia2(self):
+        """
+        ## Recebe os resultados de uma chamada a IA,e faz uma chamada nova segundo os resultados
+        ## obtidos pela anterior
+        """
+        
         l = []
         
         if self.ia.isAlive() or self.stop_ia:
@@ -129,8 +149,11 @@ class Cpu:
                     self.stop_ia = True;
                     self.need_line = True
 
-    # gera movimentos aleatorios
+
     def gen_random_movements(self):
+        """
+        ## Gera movimentos aleatorios
+        """
         
         if len(self.t_move_queue) < 8:
         
@@ -157,9 +180,14 @@ class Cpu:
             
             if moves != []: self.raw_move_queue.append(moves)
 
-    # transformar movimentos de um formato de uma lista de pares de coordenadas de blocos que devem ser trocados,
-    # para uma codificacao que permite que a IA execute os movimentos correspondentes
+
     def transform_movements(self):
+        """
+        ## transforma movimentos de um formato de uma lista de pares de coordenadas de blocos que devem ser 
+        ## trocados (IA retorna essa lista) para uma codificacao que permite que a IA execute os movimentos 
+        ## correspondentes. Sempre descobre o próximo de acordo com uma posição final do cursor
+        """
+        
         moves_to_transform = self.raw_move_queue.pop(0)
         size = len(moves_to_transform)
         move_list = []
@@ -215,14 +243,16 @@ class Cpu:
         self.t_move_queue.append(move_list)
         self.cursor_final_position = moves_to_transform[-1]
         
-    #executa os movimentos transformados que foram enfileirados
     def execute_cpu_movements(self):
+        """
+        ## Executa os movimentos transformados que foram enfileirados. Usa o código do movimento, e o valor
+        ## de espera entre movimentos para realizá-lo
+        """
         
         if self.t_move_queue == []:
             return
         
         new_move = self.t_move_queue[0][0]
-        #print self.t_move_queue[0][0]
         
         
         if new_move[0] == "change":
@@ -235,7 +265,6 @@ class Cpu:
             self.move_timer = self.max_move_timer
             self.blockbox.changing_blocks.append([self.blockbox.cursor.pos_rel_x, self.blockbox.cursor.pos_rel_y])
             self.t_move_queue[0].pop(0)
-            #print [self.blockbox.cursor.pos_rel_x, self.blockbox.cursor.pos_rel_y]
             
         elif new_move[0] == "left":
             if self.move_timer > 0:

@@ -1,4 +1,6 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import pygame
 import random
 from adds import *
@@ -6,19 +8,24 @@ from block import Block
 from cursor import Choice_cursor
 from score import Score
 
-# Caixa que contem os blocos
+# Caixa que contem os blocos, e controla lógica de jogo
 class Blockbox(pygame.sprite.Sprite):
-    # cria um grupo de sprites para os blocos
-    #block_group = pygame.sprite.RenderUpdates()
-    
-    # cria um grupo de sprites para os cursores
-    #cursor_group = pygame.sprite.RenderUpdates()
     
     # cria um grupo de sprites para os scores
     score_group = pygame.sprite.RenderUpdates()
     
-    # Inicializacao
     def __init__(self, w, h, pos_x, pos_y, screen, cpu, ini_max_height, transp=128):
+        """
+        ## Construtor
+        #  @param w: largura da blockbox
+        #  @param h: altura da blockbox
+        #  @param pos_x: posição x do canto superior esquerdo da blockbox
+        #  @param pos_y: posição y do canto superior esquerdo da blockbox
+        #  @param screen: tela na qual sera desenhada a blockbox
+        #  @param cpu: diz se a blockbox pertence a uma cpu
+        #  @param ini_max_height: altura máxima inicial
+        #  @param transp: transparência
+        """
 
         # Inicia a classe Sprite
         pygame.sprite.Sprite.__init__(self)
@@ -29,14 +36,16 @@ class Blockbox(pygame.sprite.Sprite):
         self.pos_x = pos_x
         self.pos_y = pos_y
         
+        # Grupos de sprites de blocos e de cursor
         self.block_group = pygame.sprite.RenderUpdates()
         self.cursor_group = pygame.sprite.RenderUpdates()
         
         self.frame_counter = 0
-
+        
+        # timer de queda
         self.univ_fall_timer = 15
         
-        # Trava o cursor enquanto dois blocos nao terminarem de mudar de posicao
+        # trava o cursor enquanto dois blocos nao terminarem de mudar de posicao
         self.change_fin = True
         
         # valor que deve mudar a posicao de um bloco quando ele e mudado de lugar
@@ -86,22 +95,32 @@ class Blockbox(pygame.sprite.Sprite):
                     
         self.score = Score(self.rect, 0)
         Blockbox.score_group.add(self.score)
-
+        
+        # mantem a melhor chain e o melhor combo
         self.largest_combo = 0
         self.largest_chain = 0
         
+        #
         self.cpu = cpu
-
+        
     def update_blocks(self):
+        """
+        ## Atualiza a blockbox, adicionando uma nova linha. Tambem testa se a linha adicionada
+        ## passa do limite de linhas (12) e caso sim, coloca a blockbox em estado de falha
+        """
+        
         new_block_line = []
         new_number_line = []
-
-        fail = False
         
+        
+        fail = False
+                
+        # Sobe a linha de todos os blocos da blockbox
         for line in self.block_matrix:
             for block in line:
                 block.line += 1
-
+                
+        # Gera uma nova linha aleatoriamente
         for k in range(0,6):
 
             btype = random.randint(1,5)
@@ -123,15 +142,19 @@ class Blockbox(pygame.sprite.Sprite):
         last_block_line = self.block_matrix.pop()
         self.block_config.pop()
         
+        # Se algum bloco da ultima linha for diferente de vazio, seta a blockbox em estado de falha
         for block in last_block_line:
             if block.block_type != 0:
                 fail = True
                 self.block_group.remove(block)
         if fail:
+            # Inicia o procedimento de tratamento de falha e coloca a tela pra parar de subir
             self.failure()
             self.stop_update = -1
             return
-
+            
+        # Ajeita as coordenadas presentes em todos os grupos de coordenadas que representam blocos
+        # que devem sofrer animações, para refletir a nova posição
         for group in self.falling_blocks:
             for coord in group:
                 coord[1] += 1
@@ -143,8 +166,14 @@ class Blockbox(pygame.sprite.Sprite):
         for coord in self.changing_blocks:
             coord[1] += 1
 
-    # Cria a configuracao inicial de blocos na tela. Aleatoria, com maximo de 5 linhas preenchidas.
+
     def initiate_blocks(self):
+        """
+        # Cria a configuracao inicial de blocos na tela. Aleatoria, com altura maxima de acordo com a
+        # passada como parametro.
+        """
+        
+        # Inicia todas as listas de blocos
         self.block_config = []
         self.block_matrix = []
         self.changing_blocks = []
@@ -153,8 +182,6 @@ class Blockbox(pygame.sprite.Sprite):
         self.cleared_blocks = []
         self.block_matrix.append([])
         self.block_config.append([])
-        # Altura da tela
-        #self.max_height = random.randint(2,5)
         
         # Loop especifico para a primeira linha. Nunca adiciona bloco vazio
         for k in range(0,6):
@@ -222,8 +249,11 @@ class Blockbox(pygame.sprite.Sprite):
                 self.block_matrix[i].append(b)
 
 
-    # Cuida da troca de lugar entre dois blocos
     def block_change(self, (pos_x, pos_y)):
+        """
+        ## Cuida da troca de lugar entre dois blocos
+        #  @param (pos_x, pos_y): coordenadas do bloco que será trocado com o de sua direita
+        """ 
 
         # referencia para o bloco da esquerda e da direita
         block_left = self.block_matrix[pos_y][pos_x]
@@ -237,16 +267,17 @@ class Blockbox(pygame.sprite.Sprite):
         # ou algum dos dois ja esta sendo trocado de posicao
         clearing = block_left.isClearing or block_right.isClearing
         falling = block_left.isFalling or block_right.isFalling
-        #if pos_y+1 < 12:
-            #falling = falling or self.block_matrix[pos_y+1][pos_x].isFalling or self.block_matrix[pos_y+1][pos_x+1].isFalling
         changing = block_left.isChanging != block_right.isChanging
         
+        # Se algum dos blocos já estiver sendo eliminado ou caindo, ou um deles estiver sendo trocado com
+        # outro, não os blocos de lugare tira eles da fila de blocos a trocar
         if clearing or changing or falling:
             self.changing_blocks.remove([pos_x, pos_y])
             return
         
         block_left.isChanging = True
         block_right.isChanging = True
+        
         # Se a posicao dos blocos na tela nao tiver sido trocada completamente ainda, movimenta
         # cada bloco a ser trocado um pouco mais e retorna falso
         block_left.change_position("right", 11)
@@ -260,7 +291,6 @@ class Blockbox(pygame.sprite.Sprite):
         # Se tiver terminado de trocar dois blocos de lugar, troca eles de lugar nas
         # determinadas matrizes
         else:
-            #print pos_y, pos_x
             
             # Troca os valores no bloco. Primeiro da esquerda depois da direita
             block_left.col += 1
@@ -297,7 +327,10 @@ class Blockbox(pygame.sprite.Sprite):
     
     def check_fall(self, (pos_x, pos_y), chain=0):
         """
-        # Checa se um bloco deve cair, e se sim, quantas posicoes
+        ## Checa se um bloco deve cair, e se sim, quantas posicoes. Se o bloco for vazio
+        ## testa se há blocos acima dele que devem cair
+        #  @param (pos_x, pos_y): coordenadas do bloco testado
+        #  @param chain: numero de chain do bloco
         """
 
         # Se o bloco for ativo, checa se ele proprio deve cair
@@ -328,10 +361,11 @@ class Blockbox(pygame.sprite.Sprite):
         
     def block_fall(self, block_set):
         """
-        # Cuida da queda de blocos. Recebe um grupo de blocos que deve cair. A logica e que temos um bloco
-        # mestre no grupo, que e o primeiro da lista, ou seja o bloco na linha de menor numero. Ele sempre
-        # olha o bloco abaixo de si. Caso ess seja inativo, troca uma posicao para baixo sua e de todos os
-        # outros blocos da lista. Caso nao, para de cair
+        ## Cuida da queda de blocos. Recebe um grupo de blocos que deve cair. A logica e que temos um bloco
+        ## mestre no grupo, que e o primeiro da lista, ou seja o bloco na linha de menor numero. Ele sempre
+        ## olha o bloco abaixo de si. Caso ess seja inativo, troca uma posicao para baixo sua e de todos os
+        ## outros blocos da lista. Caso nao, para de cair
+        #  @param block_set: conjunto de blocos que devem cair
         """
     
         pos_x, pos_y = block_set[0]
@@ -563,8 +597,6 @@ class Blockbox(pygame.sprite.Sprite):
                 self.block_config[pos_y][pos_x] = 0
                 self.block_group.remove(self.block_matrix[pos_y][pos_x])         
                 self.check_fall(block, chain+1)
-            #print "BLOCK_SET\n\n", block_set, "\n\nBLOCK_SET"
-            #print len(block_set)
             if number > self.largest_combo: self.largest_combo = number
             if chain > self.largest_chain: self.largest_chain = chain
             self.score.increase_score(number, chain)
@@ -619,8 +651,12 @@ class Blockbox(pygame.sprite.Sprite):
             else: return self.block_config[pos_y][pos_x] == self.block_config[pos_y-1][pos_x]
         else: return False
 
-
+    
     def failure(self):
+        """
+        ## Procedimentos relacionados a falha. Troca imagem de todos os blocos na tela e depois
+        ## faz uma animação em que eles somem progressivamente, reinicializando então o jogo
+        """
 
         if not self.fail:
             self.block_config = []
@@ -653,8 +689,11 @@ class Blockbox(pygame.sprite.Sprite):
         return False
 
 
-    # TESTE: Printa matriz de configuracao de blocos
     def print_config_matrix(self):
+        """
+        # TESTE: Printa matriz de configuracao de blocos
+        """
+        
         for i in range(11, -1, -1):
             new = []
             for k in range(0, 6):
@@ -672,8 +711,11 @@ class Blockbox(pygame.sprite.Sprite):
                     new.append('\033[1;42m'+str(self.block_config[i][k])+'\033[1;m')
             print new[0], "", new[1], "", new[2], "", new[3], "", new[4], "", new[5]
 
-    # TESTE: Printa matriz de blocos
     def print_block_matrix(self):
+        """
+        # TESTE: Printa matriz de blocos
+        """
+        
         line = ""
         for i in range(11, -1, -1):
             line = line + "Linha{0:02d}:".format(i)
@@ -682,8 +724,11 @@ class Blockbox(pygame.sprite.Sprite):
             print line
             line = ""
             
-    # TESTE: Printa situacao dos blocos (Ativo ou inativo)
     def print_active(self):
+        """
+        # TESTE: Printa situacao dos blocos (Ativo ou inativo)
+        """
+        
         line = ""
         for i in range(11, -1, -1):
             line = line + "Linha {0:02d}:".format(i)
@@ -692,9 +737,13 @@ class Blockbox(pygame.sprite.Sprite):
             print line
             line = ""
             
-    # TESTE: Inicia os blocos a partir de uma matriz de configuracao definida em um arquivo. 'name' e
-    # o nome do arquivo
+
     def file_initiate_blocks(self, name):
+        """
+        # TESTE: Inicia os blocos a partir de uma matriz de configuracao definida em um arquivo. 'name' e
+        # o nome do arquivo
+        """
+        
         f = open(name, 'r')
         
         for i in range(11, -1, -1):

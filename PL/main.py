@@ -23,6 +23,10 @@ class Main:
     
     # Inicializa classe main
     def __init__(self, width = 640, height = 480):
+        ## Construtor
+        #  @param width: largura da tela
+        #  @param height: altura da tela
+    
         # Inicializa pygame
         pygame.init()
         
@@ -84,6 +88,10 @@ class Main:
         self.read_args()
 
     def read_args(self):
+        """
+        ## Le argumentos passados na inicialização do programa
+        """
+        
         if len(sys.argv) == 1:
             return
         
@@ -104,8 +112,10 @@ class Main:
         
         print self.args
  
-    # Carrega sprites e cria grupos de sprites de inicializacao
     def load_sprites(self):
+        """
+        ## Carrega sprites e cria grupos de sprites de inicializacao. Inicializa tbm as blockboxes
+        """
         
         # objetos principais da tela. Blox e o quadro que contem os blocos.
         self.blox = Blockbox(152, 262, 100, 150, self.screen, False, self.args["height"])
@@ -128,8 +138,10 @@ class Main:
         self.cpu.last_m = copy.deepcopy(self.cpu.blockbox.block_config)
         self.cpu.init_ia()
     
-    # Chama a funcao de checagem de queda para os blocos necessarios
     def fall(self, bb):
+        """
+        ## Chama a funcao de checagem de queda para os blocos necessarios
+        """
         clear_test = []
         
         for block_set in bb.falling_blocks:
@@ -144,25 +156,34 @@ class Main:
                         pos_x, pos_y = block
                         bb.block_matrix[pos_y][pos_x].chain_number = 0
     
-    
-    # Caso tenha sido dado o comando para mudar dois blocos de posicao, esse metodo chama o metodo
-    # que muda os dois blocos na posicao desejada de lugar
     def change(self, bb):
+        """
+        ## Caso tenha sido dado o comando para mudar dois blocos de posicao, esse metodo chama o metodo
+        ## que muda os dois blocos na posicao desejada de lugar
+        """
+        
         for block in bb.changing_blocks:
             bb.change_fin = bb.block_change(block)
 
-    # Checa se existem blocos de uma determinada blockbox que devem ser eliminados. Quando eliminar blocos,
-    # para de atualizar a tela por alguns frames
+
     def clear(self, bb):
+        """
+        ## Checa se existem blocos de uma determinada blockbox que devem ser eliminados. Quando eliminar blocos,
+        ## para de atualizar a tela por alguns frames
+        """
+        
         for block_set in bb.cleared_blocks:
             bb.block_clear(block_set)
         
         if bb.cleared_blocks != []:
             self.stop_update_timer = 35 + 15*len(bb.cleared_blocks)
     
-    # Atualiza a blockbox dada, subindo um pouco a pilha de blocos. Caso tenha subido o suficiente para adicionar
-    # uma nova linha, adiciona.
-    def update_blockbox(self, bb):       
+    def update_blockbox(self, bb):  
+        """
+        ## Atualiza a blockbox dada, subindo um pouco a pilha de blocos. Caso tenha subido o suficiente para adicionar
+        ## uma nova linha, adiciona.
+        """
+        
         if bb.update_timer > 0:
             if not self.args["static"]: bb.update_timer -= 1
         
@@ -184,8 +205,11 @@ class Main:
         
         bb.rise_value = 3
     
-    # Loop principal do programa
     def main_loop(self):
+        """
+        # Loop principal do programa
+        """
+        
         running = 1
         pos_x = 0
         pos_y = 0
@@ -199,7 +223,7 @@ class Main:
         Start = False
 
         # Mensagem da tela inicial
-        self.msg1 = MSG(self.screen, "APERTE ESPAÇO PARA COMEÇAR", 24, (170, 100), (255,255,255))
+        self.msg1 = MSG("APERTE ESPAÇO PARA COMEÇAR", 24, (170, 100), (255,255,255))
         self.msg_group = pygame.sprite.RenderUpdates(self.msg1)
         self.rectlist = self.msg_group.draw(self.screen)
         pygame.display.update(self.rectlist)
@@ -389,23 +413,23 @@ class Main:
 
 
         # Cria as mensagens da última tela
-        msg_player = MSG(self.screen, "PLAYER", 38, (70, 140), (0,0,255))
-        msg_cpu = MSG(self.screen, "CPU", 38, (350, 140), (255,0,0))
+        msg_player = MSG("PLAYER", 38, (70, 140), (0,0,255))
+        msg_cpu = MSG("CPU", 38, (350, 140), (255,0,0))
 
-        score_player = MSG(self.screen, "SCORE: " + str(self.blox.score.value), 24, (70, 190), (255,255,255))
-        score_cpu = MSG(self.screen, "SCORE: " + str(self.cpu.blockbox.score.value), 24, (350, 190), (255,255,255))
+        score_player = MSG("SCORE: " + str(self.blox.score.value), 24, (70, 190), (255,255,255))
+        score_cpu = MSG("SCORE: " + str(self.cpu.blockbox.score.value), 24, (350, 190), (255,255,255))
 
-        l_combo_player = MSG(self.screen, "MAIOR COMBO: " + str(self.blox.largest_combo), 24, (70, 240), (255,255,255))
-        l_combo_cpu = MSG(self.screen, "MAIOR COMBO: " + str(self.cpu.blockbox.largest_combo), 24, (350, 240), (255,255,255))
+        l_combo_player = MSG("MAIOR COMBO: " + str(self.blox.largest_combo), 24, (70, 240), (255,255,255))
+        l_combo_cpu = MSG("MAIOR COMBO: " + str(self.cpu.blockbox.largest_combo), 24, (350, 240), (255,255,255))
 
-        l_chain_player = MSG(self.screen, "MAIOR CHAIN: " + str(self.blox.largest_chain), 24, (70, 290), (255,255,255))
-        l_chain_cpu = MSG(self.screen, "MAIOR CHAIN: " + str(self.cpu.blockbox.largest_chain), 24, (350, 290), (255,255,255))
+        l_chain_player = MSG("MAIOR CHAIN: " + str(self.blox.largest_chain), 24, (70, 290), (255,255,255))
+        l_chain_cpu = MSG("MAIOR CHAIN: " + str(self.cpu.blockbox.largest_chain), 24, (350, 290), (255,255,255))
 
 
         if self.blox.score.value >= self.cpu.blockbox.score.value:
-            msg_vitoria = MSG(self.screen, "VITORIA!", 38, (70, 90), (0,0,255))
+            msg_vitoria = MSG("VITORIA!", 38, (70, 90), (0,0,255))
         else:
-            msg_vitoria = MSG(self.screen, "VITORIA!", 38, (350, 90), (255,0,0))
+            msg_vitoria = MSG("VITORIA!", 38, (350, 90), (255,0,0))
 
         self.msg_group.add(msg_player, msg_cpu, score_player, score_cpu, l_combo_player, l_combo_cpu, l_chain_player, l_chain_cpu, msg_vitoria)
 
