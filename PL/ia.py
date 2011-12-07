@@ -99,7 +99,7 @@ def defineHeight(m):
     for r in range(7,12):
         for c in range(0,6):
             if(m[r][c] != 0): # se existe bloco acima da linha 7 forca altura 1
-                return 3
+                return 1
     return 3
 #End of Heuristics
 
